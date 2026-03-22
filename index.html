@@ -1,0 +1,2281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PulseFlow Health System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#f0437a;--pink-dark:#c0245a;--pink-glow:rgba(240,67,122,0.15);
+  --bg:#0f1117;--bg2:#161820;--bg3:#1c1f2e;--bg4:#1a1d2e;
+  --border:rgba(255,255,255,0.07);--text:#e8eaf6;--muted:#7c83a0;
+  --teal:#2dd4b6;--yellow:#ffbb00;--green:#22c55e;--blue:#667eea;
+  --purple:#9b5de5;--orange:#f77f00;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+/* CAROUSEL */
+.carousel-bg{position:fixed;inset:0;z-index:-2;overflow:hidden;}
+.carousel-slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1.5s ease;}
+.carousel-slide.active{opacity:0.2;}
+.overlay{position:fixed;inset:0;background:rgba(15,17,23,0.9);z-index:-1;}
+/* NAVBAR */
+.navbar{background:linear-gradient(135deg,var(--pink),var(--pink-dark));padding:0 28px;box-shadow:0 4px 24px rgba(0,0,0,0.3);position:sticky;top:0;z-index:300;border-bottom:1px solid rgba(255,255,255,0.1);}
+.nav-container{max-width:1500px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.logo{font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:700;color:white;padding:14px 0;cursor:pointer;}
+.logo span{opacity:0.75;font-weight:400;}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
+.nav-links a{color:white;text-decoration:none;padding:7px 14px;font-weight:500;font-size:13px;border-radius:40px;transition:.2s;cursor:pointer;}
+.nav-links a:hover,.nav-links a.active{background:rgba(255,255,255,0.2);}
+.btn-login{background:white!important;color:var(--pink)!important;font-weight:700!important;}
+.nav-user-badge{background:rgba(255,255,255,0.18);color:white;padding:5px 12px;border-radius:40px;font-size:12px;display:none;align-items:center;gap:6px;}
+.nav-user-badge.visible{display:flex;}
+/* PAGES */
+.page{display:none;animation:fadeIn .3s ease;min-height:calc(100vh - 130px);position:relative;z-index:10;}
+.page.active-page{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* MODALS */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);z-index:1000;justify-content:center;align-items:center;}
+.modal.open{display:flex;}
+.modal-content{background:var(--bg3);border-radius:24px;padding:32px;max-width:540px;width:92%;max-height:88vh;overflow-y:auto;border:1px solid var(--border);box-shadow:0 24px 60px rgba(0,0,0,0.5);}
+.modal-content h3{font-family:'Space Grotesk',sans-serif;font-size:19px;margin-bottom:18px;}
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:#1f5e55;color:white;padding:11px 26px;border-radius:50px;z-index:9999;opacity:0;transition:all .35s ease;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.3);font-size:14px;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{background:#7a1f2e;}
+.toast.warn{background:#7a5f00;}
+/* INPUTS */
+.section{padding:36px;max-width:1500px;margin:0 auto;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;}
+.card{background:rgba(28,31,46,.96);padding:24px;border-radius:20px;border:1px solid var(--border);transition:transform .2s,border-color .2s;}
+.card:hover{transform:translateY(-3px);border-color:rgba(240,67,122,.2);}
+.card h3{color:var(--pink);margin-bottom:12px;font-family:'Space Grotesk',sans-serif;font-size:15px;}
+input,select,textarea{width:100%;padding:10px 14px;border:1px solid #2a2d45;border-radius:9px;margin:5px 0;font-size:13px;background:var(--bg4);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--pink);}
+input::placeholder,textarea::placeholder{color:var(--muted);}
+select option{background:var(--bg4);}
+button{background:var(--pink);color:white;border:none;padding:10px 20px;border-radius:9px;cursor:pointer;font-weight:600;font-size:13px;font-family:'DM Sans',sans-serif;margin:5px 0;transition:all .2s;}
+button:hover{background:var(--pink-dark);transform:translateY(-1px);}
+button.secondary{background:#2a2d45;color:var(--text);}button.secondary:hover{background:#353863;}
+button.success{background:#1a6b4a;}button.danger{background:#7a1f2e;}
+button.blue{background:#3d4fd6;}button.warn{background:#7a5f00;}
+/* FORM */
+.form-group{margin-bottom:13px;}
+.form-group label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.form-group input,.form-group select,.form-group textarea{margin:0;}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;}
+.form-row>*{flex:1;min-width:150px;}
+/* BADGES */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.badge.ok{background:rgba(34,197,94,.15);color:#22c55e;}
+.badge.low{background:rgba(240,67,122,.15);color:var(--pink);}
+.badge.med{background:rgba(255,187,0,.15);color:var(--yellow);}
+.badge.blue{background:rgba(102,126,234,.15);color:var(--blue);}
+.badge.purple{background:rgba(155,93,229,.15);color:var(--purple);}
+.badge.orange{background:rgba(247,127,0,.15);color:var(--orange);}
+/* PROGRESS */
+.progress-bar{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;transition:width 1s ease;}
+.pf-pink{background:var(--pink);}
+.pf-teal{background:var(--teal);}
+.pf-yellow{background:var(--yellow);}
+.pf-blue{background:var(--blue);}
+/* CONFIRM */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;display:none;align-items:center;justify-content:center;}
+.confirm-overlay.open{display:flex;}
+.confirm-box{background:var(--bg3);border-radius:18px;padding:26px;max-width:370px;width:90%;border:1px solid var(--border);}
+.confirm-box h4{font-family:'Space Grotesk',sans-serif;font-size:16px;margin-bottom:8px;}
+.confirm-box p{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.confirm-btns{display:flex;gap:10px;justify-content:flex-end;}
+/* SPINNER */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ═══════════════════════════════════
+   ADMIN LAYOUT
+═══════════════════════════════════ */
+#admin-page{background:var(--bg);}
+.adm-wrap{display:flex;min-height:calc(100vh - 58px);}
+/* SIDEBAR */
+.adm-sidebar{width:68px;background:var(--bg2);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:4px;border-right:1px solid var(--border);position:sticky;top:58px;height:calc(100vh - 58px);flex-shrink:0;transition:width .3s ease;overflow:hidden;}
+.adm-sidebar.exp{width:210px;align-items:flex-start;padding:14px 10px;}
+.adm-sb-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:10px;flex-shrink:0;cursor:pointer;}
+.adm-sb-logo span{display:none;}
+.adm-sidebar.exp .adm-sb-logo{width:100%;border-radius:10px;gap:10px;padding:8px 10px;}
+.adm-sidebar.exp .adm-sb-logo span{display:block;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:white;}
+.nav-item{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:17px;transition:all .2s;flex-shrink:0;position:relative;}
+.nav-item:hover{background:var(--pink-glow);color:var(--pink);}
+.nav-item.act{background:var(--pink);color:white;}
+.nav-item .nl{display:none;font-size:12px;font-weight:500;white-space:nowrap;}
+.adm-sidebar.exp .nav-item{width:100%;padding:0 10px;gap:9px;justify-content:flex-start;height:40px;}
+.adm-sidebar.exp .nl{display:block;}
+.nav-item .role-badge-sb{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--teal);border:2px solid var(--bg2);}
+/* Role-specific sidebar accent colors */
+.sidebar-doctor .nav-item.act{background:var(--blue);}
+.sidebar-chemist .nav-item.act{background:var(--teal);}
+.sidebar-cms .nav-item.act{background:var(--purple);}
+.sidebar-manager .nav-item.act{background:var(--orange);}
+.sidebar-receptionist .nav-item.act{background:var(--green);}
+.adm-sb-avatar{margin-top:auto;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;flex-shrink:0;cursor:pointer;}
+.adm-sidebar.exp .adm-sb-avatar{width:100%;border-radius:10px;padding:8px;gap:9px;justify-content:flex-start;height:auto;}
+.adm-av-info{display:none;flex-direction:column;}
+.adm-sidebar.exp .adm-av-info{display:flex;}
+.adm-av-name{font-size:12px;font-weight:600;color:var(--text);}
+.adm-av-role{font-size:10px;color:var(--muted);}
+/* TOPBAR */
+.adm-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.adm-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;flex-wrap:wrap;gap:8px;}
+.adm-topbar-left{display:flex;align-items:center;gap:10px;}
+.adm-title h2{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;color:var(--text);}
+.adm-title p{font-size:10px;color:var(--muted);margin-top:1px;}
+.adm-topbar-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.chip{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--muted);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:4px;}
+.chip:hover{border-color:var(--pink);color:var(--pink);}
+.chip.act{background:var(--pink);color:white;border-color:var(--pink);}
+.adm-icon-btn{width:32px;height:32px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;position:relative;transition:all .2s;}
+.adm-icon-btn:hover{border-color:var(--pink);}
+.notif-dot{position:absolute;top:-3px;right:-3px;width:14px;height:14px;background:var(--pink);border-radius:50%;font-size:8px;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid var(--bg2);}
+/* ROLE TAG */
+.role-tag{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.3px;}
+.rt-doctor{background:rgba(102,126,234,.18);color:var(--blue);}
+.rt-chemist{background:rgba(45,212,182,.18);color:var(--teal);}
+.rt-cms{background:rgba(155,93,229,.18);color:var(--purple);}
+.rt-manager{background:rgba(247,127,0,.18);color:var(--orange);}
+.rt-receptionist{background:rgba(34,197,94,.18);color:var(--green);}
+/* CONTENT */
+.adm-content{padding:18px 20px;overflow-y:auto;flex:1;}
+.adm-panel{display:none;}
+.adm-panel.act{display:block;animation:fadeIn .25s ease;}
+/* METRIC CARDS */
+.metrics-row{display:grid;gap:12px;margin-bottom:14px;}
+.metric-card{background:var(--bg3);border-radius:13px;padding:15px;border:1px solid var(--border);transition:all .2s;}
+.metric-card:hover{border-color:rgba(240,67,122,.25);}
+.metric-card.hl{border:none;}
+.metric-lbl{font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.metric-val{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;line-height:1;margin-bottom:3px;}
+.metric-sub{font-size:9px;color:var(--muted);}
+.metric-chg{font-size:9px;font-weight:700;display:inline-flex;align-items:center;gap:2px;margin-top:3px;}
+.metric-chg.up{color:var(--teal);}
+.metric-chg.dn{color:var(--pink);}
+/* CHART CARDS */
+.chart-row{display:grid;gap:12px;margin-bottom:14px;}
+.chart-card{background:var(--bg3);border-radius:13px;padding:16px;border:1px solid var(--border);}
+.chart-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.chart-ttl{font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--text);}
+.chart-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+/* BAR CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:100px;}
+.bar-grp{display:flex;gap:2px;align-items:flex-end;flex:1;}
+.bar{flex:1;border-radius:3px 3px 0 0;transition:opacity .2s;cursor:pointer;}
+.bar.p{background:var(--pink);}
+.bar.s{background:#2a2d45;}
+.bar.t{background:var(--teal);}
+.bar.b{background:var(--blue);}
+.bar-labels{display:flex;gap:4px;margin-top:4px;}
+.bar-lbl{font-size:9px;color:var(--muted);text-align:center;flex:1;}
+/* HBARS */
+.hbar-row{display:flex;align-items:center;gap:8px;margin:5px 0;}
+.hbar-lbl{font-size:11px;color:var(--muted);min-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hbar-track{flex:1;height:15px;background:var(--bg4);border-radius:4px;overflow:hidden;}
+.hbar-fill{height:100%;border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:4px;transition:width 1s ease;}
+.hbar-fill-val{font-size:8px;color:white;font-weight:700;}
+.hbar-extra{font-size:9px;color:var(--muted);min-width:36px;text-align:right;}
+/* DONUT */
+.donut-wrap{display:flex;align-items:center;gap:12px;margin-top:6px;}
+.donut-legend{display:flex;flex-direction:column;gap:5px;}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);}
+.leg-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0;}
+.leg-val{color:var(--text);font-weight:600;margin-left:auto;min-width:32px;}
+/* TABLE */
+.tbl-card{background:var(--bg3);border-radius:13px;padding:16px;border:1px solid var(--border);margin-bottom:14px;}
+.tbl{width:100%;border-collapse:collapse;margin-top:8px;}
+.tbl th{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:6px 5px;text-align:left;border-bottom:1px solid var(--border);}
+.tbl td{font-size:11px;padding:8px 5px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+/* SEARCH */
+.search-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:180px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;}
+.search-input:focus{border-color:var(--pink);}
+.search-input::placeholder{color:var(--muted);}
+/* ADM MINI BTNS */
+.adm-btn{background:var(--pink);color:white;border:none;border-radius:7px;padding:7px 13px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap;}
+.adm-btn:hover{background:var(--pink-dark);}
+.adm-btn.sec{background:var(--bg4);color:var(--text);border:1px solid var(--border);}
+.adm-btn.sec:hover{border-color:var(--pink);}
+.adm-btn.grn{background:#1a6b4a;}
+.adm-btn.blu{background:#3d4fd6;}
+.adm-btn.pur{background:#7a3db5;}
+.mini-btn{background:transparent;border:1px solid var(--border);border-radius:6px;padding:3px 7px;font-size:10px;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif;}
+.mini-btn:hover{border-color:var(--pink);color:var(--pink);}
+.mini-btn.grn{border-color:rgba(45,212,182,.3);color:var(--teal);}
+.mini-btn.grn:hover{background:rgba(45,212,182,.1);}
+.mini-btn.red{border-color:rgba(240,67,122,.3);color:var(--pink);}
+.mini-btn.red:hover{background:var(--pink-glow);}
+.mini-btn.blu{border-color:rgba(102,126,234,.3);color:var(--blue);}
+.mini-btn.blu:hover{background:rgba(102,126,234,.1);}
+/* PRESC LIST */
+.presc-item{display:flex;align-items:center;gap:8px;background:var(--bg4);border-radius:7px;padding:7px 10px;font-size:11px;}
+.presc-code{color:var(--pink);font-weight:700;min-width:70px;}
+/* AUDIT */
+.audit-list{display:flex;flex-direction:column;gap:2px;max-height:240px;overflow-y:auto;}
+.audit-item{display:flex;gap:7px;font-size:10px;padding:5px 0;border-bottom:1px solid var(--border);}
+.audit-time{color:var(--muted);min-width:36px;flex-shrink:0;}
+.audit-role-tag{padding:1px 6px;border-radius:8px;font-size:8px;font-weight:700;margin-left:auto;flex-shrink:0;align-self:flex-start;}
+/* STOCK PILLS */
+.stock-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
+.sp-crit{background:rgba(240,67,122,.15);color:var(--pink);}
+.sp-low{background:rgba(255,187,0,.15);color:var(--yellow);}
+.sp-ok{background:rgba(34,197,94,.15);color:var(--green);}
+/* HERO */
+.hero{padding:70px 36px 50px;text-align:center;max-width:1500px;margin:0 auto;}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(30px,5vw,52px);color:white;line-height:1.1;margin-bottom:18px;letter-spacing:-1px;}
+.hero h1 span{color:var(--pink);}
+.hero p{max-width:620px;margin:0 auto 36px;color:var(--muted);font-size:16px;line-height:1.7;}
+.hero-stats{display:flex;justify-content:center;gap:36px;flex-wrap:wrap;margin-top:36px;}
+.hero-stat{text-align:center;}
+.hero-stat-val{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;color:var(--pink);}
+.hero-stat-lbl{font-size:12px;color:var(--muted);margin-top:3px;}
+/* CLINIC CARD */
+.clinic-card{background:var(--bg4);padding:12px;border-radius:12px;margin:8px 0;border-left:3px solid var(--pink);}
+.badge-avail{color:var(--teal);font-weight:600;padding:2px 9px;background:rgba(45,212,182,.12);border-radius:20px;font-size:11px;display:inline-block;}
+/* FLOATING */
+.whatsapp-dock{position:fixed;bottom:96px;right:28px;width:48px;height:48px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:998;box-shadow:0 4px 16px rgba(37,211,102,.35);transition:transform .2s;}
+.whatsapp-dock:hover{transform:scale(1.1);}
+.whatsapp-dock img{width:26px;height:26px;}
+.ai-chat-dock{position:fixed;bottom:28px;right:28px;background:var(--pink);width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:998;font-size:24px;box-shadow:0 4px 20px rgba(240,67,122,.45);transition:all .2s;}
+.ai-chat-dock:hover{background:var(--pink-dark);transform:scale(1.05);}
+.chat-window{position:fixed;bottom:92px;right:28px;width:360px;height:480px;background:var(--bg3);border-radius:20px;box-shadow:0 12px 40px rgba(0,0,0,.45);display:none;flex-direction:column;z-index:999;border:1px solid var(--border);}
+.chat-hdr{background:var(--pink);color:white;padding:14px 18px;border-radius:20px 20px 0 0;font-weight:700;display:flex;justify-content:space-between;align-items:center;font-size:14px;}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;background:var(--bg);display:flex;flex-direction:column;gap:7px;}
+.chat-inp-row{padding:10px;border-top:1px solid var(--border);display:flex;gap:7px;background:var(--bg3);border-radius:0 0 20px 20px;}
+.msg{padding:9px 13px;border-radius:14px;max-width:82%;font-size:12px;line-height:1.5;}
+.user-msg{background:rgba(240,67,122,.2);margin-left:auto;border-radius:14px 14px 4px 14px;}
+.bot-msg{background:var(--bg3);border-radius:14px 14px 14px 4px;}
+/* PRESC NOTE */
+.presc-note{background:rgba(240,67,122,.1);padding:12px;border-radius:10px;font-size:12px;border:1px solid rgba(240,67,122,.2);}
+/* ALERT CARD */
+.alert-card{padding:10px 13px;border-radius:0 8px 8px 0;margin-bottom:7px;font-size:12px;border-left:3px solid;}
+.alert-card.crit{background:rgba(240,67,122,.08);border-color:var(--pink);}
+.alert-card.warn{background:rgba(255,187,0,.08);border-color:var(--yellow);}
+.alert-card.info{background:rgba(102,126,234,.08);border-color:var(--blue);}
+/* ACCESS DENIED */
+.access-denied{text-align:center;padding:60px 20px;color:var(--muted);}
+.access-denied .icon{font-size:48px;margin-bottom:14px;}
+/* SCHEDULE GRID */
+.schedule-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px;}
+.sched-day{background:var(--bg4);border-radius:8px;padding:8px 6px;text-align:center;}
+.sched-day-name{font-size:9px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
+.sched-slot{background:rgba(240,67,122,.15);border-radius:4px;padding:3px;font-size:8px;color:var(--pink);margin-bottom:3px;cursor:pointer;}
+.sched-slot.avail{background:rgba(34,197,94,.1);color:var(--green);}
+.sched-slot.empty{background:var(--bg3);color:var(--muted);}
+/* FACILITY BADGE */
+.facility-badge{background:rgba(102,126,234,.1);border:1px solid rgba(102,126,234,.2);color:var(--blue);padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;}
+/* FOOTER */
+footer{background:var(--pink);color:white;text-align:center;padding:18px;font-size:12px;margin-top:40px;}
+/* RESPONSIVE */
+@media(max-width:900px){
+  .metrics-row,.chart-row{grid-template-columns:1fr!important;}
+  .section{padding:20px 14px;}
+}
+@media(max-width:600px){
+  .navbar{padding:0 14px;}
+  .logo{font-size:17px;}
+  .chat-window{width:calc(100vw - 20px);right:10px;}
+  .adm-topbar{padding:10px 12px;}
+}
+</style>
+</head>
+<body>
+<div class="carousel-bg" id="carouselBg"></div>
+<div class="overlay"></div>
+
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h4 id="confirmTitle">Confirm</h4>
+    <p id="confirmMsg">Are you sure?</p>
+    <div class="confirm-btns">
+      <button class="secondary" onclick="closeConfirm()">Cancel</button>
+      <button class="danger" id="confirmYesBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="nav-container">
+    <div class="logo" onclick="showPage('home')"> PulseFlow <span>Health</span></div>
+    <div class="nav-links">
+      <a onclick="showPage('home')" id="nav-home" class="active">Home</a>
+      <a onclick="showPage('patient')" id="nav-patient">Patient Portal</a>
+      <a onclick="showPage('admin')" id="nav-admin">Admin Portal</a>
+      <div class="nav-user-badge" id="navUserBadge">
+        <span id="navRoleDot" style="width:7px;height:7px;border-radius:50%;background:var(--teal);display:inline-block;"></span>
+        <span id="navUserName"></span>
+        <span onclick="doLogout()" style="cursor:pointer;opacity:.65;font-size:11px;margin-left:3px;">✕ Logout</span>
+      </div>
+      <a onclick="openLoginModal()" class="btn-login" id="loginBtn">Login</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ HOME ═══════ -->
+<div id="home-page" class="page active-page">
+  <div class="hero">
+    <h1>Smarter Healthcare.<br><span>Zero Wait. Zero Shortage.</span></h1>
+    <p>Intelligent multi-role platform reducing waiting times and preventing medicine shortages across Botswana's entire healthcare network.</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button onclick="openLoginModal()">Get Started →</button>
+      <button class="secondary" onclick="showPage('patient')">Patient Portal</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val" id="heroClinicCount">—</div><div class="hero-stat-lbl">Clinics Networked</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">42%</div><div class="hero-stat-lbl">Wait Time Reduction</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">5</div><div class="hero-stat-lbl">Admin Roles</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">24/7</div><div class="hero-stat-lbl">Real-Time Monitoring</div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="grid">
+      <div class="card"><h3>𖡎 Patient Flow Intelligence</h3><p style="font-size:13px;color:var(--muted);line-height:1.7;">Real-time queue predictions with 42% wait reduction. Smart scheduling balances load across all facilities.</p></div>
+      <div class="card"><h3>⫏⫐ Medicine Stock Forecaster</h3><p style="font-size:13px;color:var(--muted);line-height:1.7;">CMS-level central inventory with facility-level tracking. Reorder alerts prevent shortages before they happen.</p></div>
+      <div class="card"><h3>⚲ Location-Based Referrals</h3><p style="font-size:13px;color:var(--muted);line-height:1.7;">Find nearest clinics with real-time availability. Intelligent redirection to less crowded facilities.</p></div>
+      <div class="card"><h3>🔒︎ 5-Role RBAC System</h3><p style="font-size:13px;color:var(--muted);line-height:1.7;">Doctor · Chemist · CMS Admin · Manager · Receptionist — each with strictly enforced permissions and data privacy.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PATIENT ═══════ -->
+<div id="patient-page" class="page">
+  <div class="section">
+    <h2 style="font-family:'Space Grotesk',sans-serif;font-size:24px;text-align:center;margin-bottom:28px;">Patient Portal
+      <div style="width:46px;height:3px;background:var(--pink);margin:8px auto 0;border-radius:3px;"></div>
+    </h2>
+    <div class="grid">
+      <div class="card">
+        <h3>⚲ Clinic Finder</h3>
+        <button onclick="detectLocation()" id="locBtn">⊙ Detect My Location</button>
+        <div id="locationResult" style="margin-top:8px;font-size:12px;"></div>
+        <div id="nearbyClinics"></div>
+      </div>
+      <div class="card">
+        <h3>⫏⫐ Medicine Check</h3>
+        <div class="presc-note"><strong>⚕ Prescription Required</strong><br>Enter the code from your doctor. Codes are single-use.</div>
+        <input type="text" id="prescriptionCode" placeholder="Prescription Code (e.g. RX-1001)" style="margin-top:12px;">
+        <input type="text" id="prescriptionMedicine" placeholder="Medicine Name">
+        <button onclick="checkMedicineWithPrescription()">✓ Verify & Check Stock</button>
+        <div id="prescriptionResult" style="margin-top:12px;"></div>
+      </div>
+      <div class="card">
+        <h3>𝄜 Book Appointment</h3>
+        <div class="form-row">
+          <input type="text" id="fullName" placeholder="Full Name *">
+          <input type="text" id="medicalAid" placeholder="Medical Aid (optional)">
+        </div>
+        <div class="form-row">
+          <input type="tel" id="phoneNumber" placeholder="Phone *">
+          <input type="email" id="email" placeholder="Email">
+        </div>
+        <div class="form-row">
+          <input type="date" id="preferredDate">
+          <select id="preferredTime">
+            <option value="">Select Time</option>
+            <option>08:00 AM</option><option>09:00 AM</option><option>10:00 AM</option>
+            <option>11:00 AM</option><option>12:00 PM</option><option>01:00 PM</option>
+            <option>02:00 PM</option><option>03:00 PM</option><option>04:00 PM</option>
+          </select>
+        </div>
+        <select id="bookingClinicForm"><option value="">Select Clinic</option></select>
+        <textarea id="symptoms" rows="2" placeholder="Symptoms / reason for visit"></textarea>
+        <button onclick="submitAppointment()">✓ Confirm Booking</button>
+        <div id="bookingResult"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ ADMIN ═══════ -->
+<div id="admin-page" class="page">
+  <div class="adm-wrap">
+    <aside class="adm-sidebar" id="admSidebar">
+      <div class="adm-sb-logo" onclick="toggleSidebar()">
+        <span>⚕</span>
+        <span>PulseFlow</span>
+      </div>
+      <!-- Nav items injected by role -->
+      <div id="sidebarNav"></div>
+      <div class="adm-sb-avatar" id="admAvatar" style="margin-top:auto;">
+        <span id="admAvatarInitial">A</span>
+        <div class="adm-av-info">
+          <span class="adm-av-name" id="admAvatarName">Admin</span>
+          <span class="adm-av-role" id="admAvatarRole">—</span>
+        </div>
+      </div>
+    </aside>
+    <div class="adm-main">
+      <div class="adm-topbar">
+        <div class="adm-topbar-left">
+          <div class="adm-icon-btn" onclick="toggleSidebar()">☰</div>
+          <div class="adm-title">
+            <h2 id="panelTitle">Dashboard</h2>
+            <p id="panelSubtitle">Loading…</p>
+          </div>
+        </div>
+        <div class="adm-topbar-right">
+          <div id="topbarFilters"></div>
+          <div class="role-tag" id="roleTagDisplay">—</div>
+          <div class="adm-icon-btn" onclick="openNotifications()" title="Notifications">
+            &#x1F514;<div class="notif-dot" id="notifCount">3</div>
+          </div>
+          <div class="adm-icon-btn" onclick="openSettingsModal()" title="Settings">&#x2699;&#xFE0E;</div>
+        </div>
+      </div>
+      <div class="adm-content" id="adm-content">
+        <div id="panel-dashboard" class="adm-panel act"></div>
+        <div id="panel-patients" class="adm-panel"></div>
+        <div id="panel-prescriptions" class="adm-panel"></div>
+        <div id="panel-inventory" class="adm-panel"></div>
+        <div id="panel-clinics" class="adm-panel"></div>
+        <div id="panel-reports" class="adm-panel"></div>
+        <div id="panel-schedule" class="adm-panel"></div>
+        <div id="panel-staff" class="adm-panel"></div>
+        <div id="panel-cms-inventory" class="adm-panel"></div>
+        <div id="panel-distribution" class="adm-panel"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODALS ═══════ -->
+<!-- Login -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <h3>🔒︎ PulseFlow Login</h3>
+    <div class="form-group"><label>Username</label><input type="text" id="loginUsername" placeholder="Enter username" autocomplete="username"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="form-group"><label>Role</label>
+      <select id="loginRole">
+        <option value="patient">Patient</option>
+        <option value="admin-doctor">Doctor (Admin)</option>
+        <option value="admin-chemist">Chemist (Admin)</option>
+        <option value="admin-cms">CMS Admin — Central Medical Store</option>
+        <option value="admin-manager">Hospital/Clinic Manager</option>
+        <option value="receptionist">Receptionist</option>
+      </select>
+    </div>
+    <button onclick="doLogin()" id="loginBtn2" style="width:100%;margin-top:4px;">Login</button>
+    <button class="secondary" onclick="closeModal('loginModal')" style="width:100%;">Cancel</button>
+    <div style="margin-top:14px;padding:12px;background:var(--bg4);border-radius:9px;font-size:11px;color:var(--muted);line-height:1.9;">
+      <strong style="color:var(--text);">Demo Credentials</strong><br>
+      Patient: <code>patient / patient123</code><br>
+      Doctor: <code>doctor / doctor123</code> (Facility: Bokamoso)<br>
+      Chemist: <code>chemist / chemist123</code> (Global access)<br>
+      CMS Admin: <code>cms / cms123</code> (Inventory only)<br>
+      Manager: <code>manager / manager123</code> (Facility scope)<br>
+      Receptionist: <code>receptionist / recept123</code> (Scheduling only)
+    </div>
+  </div>
+</div>
+
+<!-- Add Patient -->
+<div id="addPatientModal" class="modal">
+  <div class="modal-content">
+    <h3>𐀪 Add New Patient</h3>
+    <div class="form-group"><label>Full Name *</label><input id="ptName" placeholder="Patient full name"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Age</label><input id="ptAge" type="number" placeholder="Age"></div>
+      <div class="form-group"><label>Gender</label><select id="ptGender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+    </div>
+    <div class="form-group"><label>Phone</label><input id="ptPhone" placeholder="+267..."></div>
+    <div class="form-group"><label>National ID</label><input id="ptId" placeholder="ID Number"></div>
+    <div class="form-group"><label>Medical Aid</label><input id="ptAid" placeholder="Medical Aid / Insurance"></div>
+    <div class="form-group"><label>Condition / Notes</label><textarea id="ptNotes" rows="3" placeholder="Medical history, allergies, current conditions..."></textarea></div>
+    <div style="display:flex;gap:8px;"><button onclick="savePatient()" style="flex:1;">Save Patient</button><button class="secondary" onclick="closeModal('addPatientModal')" style="flex:1;">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Edit Patient -->
+<div id="editPatientModal" class="modal">
+  <div class="modal-content">
+    <h3>✎ Edit Patient</h3>
+    <input type="hidden" id="editPtIdx">
+    <div class="form-group"><label>Full Name *</label><input id="editPtName"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Age</label><input id="editPtAge" type="number"></div>
+      <div class="form-group"><label>Gender</label><select id="editPtGender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+    </div>
+    <div class="form-group"><label>Phone</label><input id="editPtPhone"></div>
+    <div class="form-group"><label>Medical Notes</label><textarea id="editPtNotes" rows="3"></textarea></div>
+    <div style="display:flex;gap:8px;"><button onclick="updatePatient()" style="flex:1;">Update</button><button class="secondary" onclick="closeModal('editPatientModal')" style="flex:1;">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Issue Prescription -->
+<div id="issuePrescModal" class="modal">
+  <div class="modal-content">
+    <h3>🗐 Issue Prescription</h3>
+    <div class="form-group"><label>Patient Name *</label><input id="ipPatient" placeholder="Patient name"></div>
+    <div class="form-group"><label>Medicine *</label>
+      <select id="ipMedicine"><option value="">Select medicine</option>
+        <option>Amoxicillin</option><option>Paracetamol</option><option>Metformin</option>
+        <option>Insulin</option><option>Ibuprofen</option><option>Omeprazole</option>
+        <option>Atenolol</option><option>Amlodipine</option><option>Atorvastatin</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Dosage</label><input id="ipDosage" placeholder="e.g. 500mg twice daily"></div>
+      <div class="form-group"><label>Duration</label><input id="ipDuration" placeholder="e.g. 7 days"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="ipNotes" rows="2" placeholder="Additional instructions..."></textarea></div>
+    <div style="display:flex;gap:8px;"><button onclick="issuePrescriptionModal()" style="flex:1;">Issue Prescription</button><button class="secondary" onclick="closeModal('issuePrescModal')" style="flex:1;">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Restock -->
+<div id="restockModal" class="modal">
+  <div class="modal-content">
+    <h3>⊞ Restock Medicine</h3>
+    <div class="form-group"><label>Medicine</label><input id="rsName" readonly></div>
+    <div class="form-group"><label>Facility</label><select id="rsClinic"><option value="">Select facility</option></select></div>
+    <div class="form-group"><label>Quantity to Add *</label><input id="rsQty" type="number" placeholder="Units to add" min="1"></div>
+    <div class="form-group"><label>Supplier / Batch #</label><input id="rsSupplier" placeholder="Supplier name or batch number"></div>
+    <div class="form-group"><label>Notes</label><input id="rsNotes" placeholder="Optional notes"></div>
+    <div style="display:flex;gap:8px;"><button onclick="doRestock()" style="flex:1;">Confirm Restock</button><button class="secondary" onclick="closeModal('restockModal')" style="flex:1;">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Distribute -->
+<div id="distributeModal" class="modal">
+  <div class="modal-content">
+    <h3>⇒ Distribute to Facility</h3>
+    <div class="form-group"><label>Medicine *</label><select id="distMed"><option value="">Select medicine</option></select></div>
+    <div class="form-group"><label>From (Central Store)</label><input value="Central Medical Store — Gaborone" readonly></div>
+    <div class="form-group"><label>To Facility *</label><select id="distFacility"><option value="">Select facility</option></select></div>
+    <div class="form-group"><label>Quantity *</label><input id="distQty" type="number" placeholder="Units to distribute" min="1"></div>
+    <div class="form-group"><label>Priority</label><select id="distPriority"><option>Normal</option><option>Urgent</option><option>Emergency</option></select></div>
+    <div style="display:flex;gap:8px;"><button onclick="doDistribute()" style="flex:1;">Confirm Distribution</button><button class="secondary" onclick="closeModal('distributeModal')" style="flex:1;">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Add Staff -->
+<div id="addStaffModal" class="modal">
+  <div class="modal-content">
+    <h3>𐀪 Add Staff Member</h3>
+    <div class="form-group"><label>Full Name *</label><input id="stName" placeholder="Staff member name"></div>
+    <div class="form-group"><label>Role *</label>
+      <select id="stRole"><option value="">Select role</option>
+        <option value="admin-doctor">Doctor</option>
+        <option value="admin-chemist">Chemist</option>
+        <option value="receptionist">Receptionist</option>
+        <option value="nurse">Nurse</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Username</label><input id="stUsername" placeholder="Login username"></div>
+    <div class="form-group"><label>Phone</label><input id="stPhone" placeholder="+267..."></div>
+    <div class="form-group"><label>Email</label><input id="stEmail" type="email" placeholder="Email address"></div>
+    <div style="display:flex;gap:8px;"><button onclick="saveStaff()" style="flex:1;">Add Staff</button><button class="secondary" onclick="closeModal('addStaffModal')" style="flex:1;">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Add Appointment -->
+<div id="addApptModal" class="modal">
+  <div class="modal-content">
+    <h3>𝄜 New Appointment Slot</h3>
+    <div class="form-group"><label>Patient Name *</label><input id="apptPatient" placeholder="Patient name"></div>
+    <div class="form-group"><label>Doctor</label><input id="apptDoctor" placeholder="Assigned doctor"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Date *</label><input type="date" id="apptDate"></div>
+      <div class="form-group"><label>Time *</label>
+        <select id="apptTime">
+          <option value="">Select</option>
+          <option>08:00 AM</option><option>08:30 AM</option><option>09:00 AM</option>
+          <option>09:30 AM</option><option>10:00 AM</option><option>10:30 AM</option>
+          <option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option>
+          <option>02:00 PM</option><option>02:30 PM</option><option>03:00 PM</option>
+          <option>03:30 PM</option><option>04:00 PM</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Reason / Notes</label><textarea id="apptNotes" rows="2" placeholder="Reason for visit..."></textarea></div>
+    <div style="display:flex;gap:8px;"><button onclick="saveAppointment()" style="flex:1;">Book Slot</button><button class="secondary" onclick="closeModal('addApptModal')" style="flex:1;">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Notifications -->
+<div id="notifModal" class="modal">
+  <div class="modal-content">
+    <h3>⁜ Notifications</h3>
+    <div id="notifList" style="display:flex;flex-direction:column;gap:8px;margin-top:10px;"></div>
+    <button style="width:100%;margin-top:14px;" onclick="closeModal('notifModal')">Close</button>
+  </div>
+</div>
+
+<!-- Settings -->
+<div id="settingsModal" class="modal">
+  <div class="modal-content">
+    <h3>⚙︎ System Settings</h3>
+    <div class="form-group"><label>Auto-refresh interval (seconds)</label><input type="number" id="refreshInterval" value="8" min="5" max="60"></div>
+    <div class="form-group"><label>Low stock threshold (units)</label><input type="number" id="lowStockThreshold" value="10" min="1"></div>
+    <div class="form-group"><label>Critical stock threshold (units)</label><input type="number" id="critStockThreshold" value="5" min="1"></div>
+    <div class="form-group"><label>High load alert (%)</label><input type="number" id="highLoadThreshold" value="80" min="50" max="100"></div>
+    <div class="form-group"><label>Reorder alert (units)</label><input type="number" id="reorderThreshold" value="20" min="5"></div>
+    <div style="display:flex;gap:8px;"><button onclick="saveSettings()" style="flex:1;">Save Settings</button><button class="secondary" onclick="closeModal('settingsModal')" style="flex:1;">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Floating -->
+<div class="whatsapp-dock" onclick="openWhatsApp()"><img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp"></div>
+<div class="ai-chat-dock" onclick="toggleChat()">𖠌</div>
+<div id="chatWindow" class="chat-window">
+  <div class="chat-hdr"><span>𖠌 PulseFlow AI</span><span onclick="toggleChat()" style="cursor:pointer;opacity:.8;">✕</span></div>
+  <div class="chat-msgs" id="chatMessages"><div class="msg bot-msg">Hello! I can help with symptom triage and clinic recommendations.</div></div>
+  <div class="chat-inp-row">
+    <input type="text" id="chatInput" placeholder="Describe symptoms..." style="flex:1;margin:0;border-radius:7px;" onkeydown="if(event.key==='Enter')sendChatMessage()">
+    <button onclick="sendChatMessage()" style="margin:0;padding:8px 14px;">Send</button>
+  </div>
+</div>
+<div id="toastMsg" class="toast"></div>
+
+<footer><p>PulseFlow Health System &nbsp;|&nbsp; DATA ALCHEMISTS &nbsp;|&nbsp; © 2026</p></footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  RBAC DEFINITIONS
+// ══════════════════════════════════════════
+const ROLE_CONFIG = {
+  'admin-doctor': {
+    label:'Doctor', color:'var(--blue)', cls:'rt-doctor', sbCls:'sidebar-doctor',
+    avatarBg:'linear-gradient(135deg,#667eea,#5a54c4)',
+    panels:['dashboard','patients','prescriptions','reports'],
+    navItems:[
+      {id:'dashboard',icon:'🏠︎',label:'Dashboard'},
+      {id:'patients',icon:'𖨆𖨆',label:'My Patients'},
+      {id:'prescriptions',icon:'🗎',label:'Prescriptions'},
+      {id:'reports',icon:'🗁',label:'Reports'},
+    ],
+    facilityScoped:true,
+    perms:{patients:true,prescriptions:'issue',inventory:false,staff:false,schedule:false,cms:false,globalInventory:false}
+  },
+  'admin-chemist': {
+    label:'Chemist', color:'var(--teal)', cls:'rt-chemist', sbCls:'sidebar-chemist',
+    avatarBg:'linear-gradient(135deg,#2dd4b6,#0d9488)',
+    panels:['dashboard','prescriptions','inventory','reports'],
+    navItems:[
+      {id:'dashboard',icon:'🏠︎',label:'Dashboard'},
+      {id:'prescriptions',icon:'🗎',label:'All Prescriptions'},
+      {id:'inventory',icon:'⫏⫐',label:'Inventory'},
+      {id:'reports',icon:'🗁',label:'Reports'},
+    ],
+    facilityScoped:false,
+    perms:{patients:false,prescriptions:'dispense',inventory:'view',staff:false,schedule:false,cms:false,globalInventory:false}
+  },
+  'admin-cms': {
+    label:'CMS Admin', color:'var(--purple)', cls:'rt-cms', sbCls:'sidebar-cms',
+    avatarBg:'linear-gradient(135deg,#9b5de5,#7b2fc4)',
+    panels:['dashboard','cms-inventory','distribution','reports'],
+    navItems:[
+      {id:'dashboard',icon:'🏠︎',label:'Dashboard'},
+      {id:'cms-inventory',icon:'𖠿',label:'Central Inventory'},
+      {id:'distribution',icon:'🚚',label:'Distribution'},
+      {id:'reports',icon:'📊',label:'Reports'},
+    ],
+    facilityScoped:false,
+    perms:{patients:false,prescriptions:false,inventory:'cms',staff:false,schedule:false,cms:true,globalInventory:true}
+  },
+  'admin-manager': {
+    label:'Facility Manager', color:'var(--orange)', cls:'rt-manager', sbCls:'sidebar-manager',
+    avatarBg:'linear-gradient(135deg,#f77f00,#d35400)',
+    panels:['dashboard','clinics','inventory','staff','reports'],
+    navItems:[
+      {id:'dashboard',icon:'🏠︎',label:'Dashboard'},
+      {id:'clinics',icon:'⌂',label:'My Facility'},
+      {id:'inventory',icon:'✙',label:'Local Stock'},
+      {id:'staff',icon:'𖨆',label:'Staff'},
+      {id:'reports',icon:'🗁',label:'Reports'},
+    ],
+    facilityScoped:true,
+    perms:{patients:false,prescriptions:false,inventory:'facility',staff:true,schedule:false,cms:false,globalInventory:false}
+  },
+  'receptionist': {
+    label:'Receptionist', color:'var(--green)', cls:'rt-receptionist', sbCls:'sidebar-receptionist',
+    avatarBg:'linear-gradient(135deg,#22c55e,#16a34a)',
+    panels:['schedule'],
+    navItems:[
+      {id:'schedule',icon:'🗓',label:'Appointments'},
+    ],
+    facilityScoped:true,
+    perms:{patients:false,prescriptions:false,inventory:false,staff:false,schedule:true,cms:false,globalInventory:false}
+  }
+};
+
+const USERS = {
+  patient:      {password:'patient123',   role:'patient',        name:'Patient User',   facility:null},
+  doctor:       {password:'doctor123',    role:'admin-doctor',   name:'Dr. K. Mokobi',  facility:1},
+  chemist:      {password:'chemist123',   role:'admin-chemist',  name:'Ph. T. Setshedi',facility:9},
+  cms:          {password:'cms123',       role:'admin-cms',      name:'CMS. B. Modise', facility:15},
+  manager:      {password:'manager123',   role:'admin-manager',  name:'Mgr. S. Dithebe',facility:1},
+  receptionist: {password:'recept123',    role:'receptionist',   name:'R. O. Molapo',   facility:1},
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════════════
+const clinicNames = [
+  "Bokamoso Medical Clinic — Greater Gaborone","Serowe Central Hospital — Serowe","Gumare Health Hub — Gumare",
+  "AAR Health Services – Riverwalk — Greater Gaborone","Tutume District Hospital — Tutume","Kang Rural Clinic — Kang",
+  "Ramotswa Health Centre — Ramotswa","Blue Cross Medical Clinic — Kweneng","Bethel Medical Clinic — South East",
+  "Apex Medical Clinic — Greater Gaborone","Baraka Medical Clinic — Kgatleng","Athena Medical Clinic — Francistown",
+  "Bridge Medical Clinic — Central District","Blossom Medical Clinic — Ngamiland","Aurora Medical Clinic — Gaborone",
+  "Axis Medical Clinic — Kweneng","Bayview Medical Clinic — Chobe","Botho Medical Clinic — Gaborone",
+  "BHF Medical Clinic — Lobatse","Amazon Medical Clinic — Francistown","Aspen Medical Clinic — Ghanzi",
+  "Atlantic Medical Clinic — Maun","Better Health Clinic — Palapye","Blessed Medical Clinic — Kanye",
+  "Bokone Medical Clinic — Mochudi","Bonolo Medical Clinic — Selebi-Phikwe","Botswana Family Clinic — Gaborone",
+  "Broadway Medical Clinic — Francistown","Brookside Medical Clinic — Kweneng","Buildcare Medical Clinic — Gaborone",
+  "Gaborone Central Hospital — Gaborone","Gaborone West Clinic — Gaborone","Ramotswa District Hospital — Ramotswa",
+  "Gumare North Clinic — Gumare","Tutume Wellness Center — Tutume","Serowe South Clinic — Serowe",
+  "Kang District Hospital — Kang","AAR Health Services – Game City — Gaborone","Apollo Medical Clinic — Gaborone",
+  "AAR Health Services – Extension 2 — Gaborone"
+];
+const locationCoords = {
+  "Greater Gaborone":{lat:-24.6282,lng:25.9231},"Gaborone":{lat:-24.6282,lng:25.9231},
+  "Serowe":{lat:-22.3875,lng:26.7108},"Gumare":{lat:-19.3656,lng:22.1645},
+  "Tutume":{lat:-20.5039,lng:27.0341},"Kang":{lat:-23.6814,lng:22.7892},
+  "Ramotswa":{lat:-24.8715,lng:25.8345},"Kweneng":{lat:-24.5,lng:25.5},
+  "South East":{lat:-24.9,lng:25.7},"Kgatleng":{lat:-24.2,lng:26.2},
+  "Francistown":{lat:-21.1702,lng:27.5079},"Central District":{lat:-22,lng:26.5},
+  "Ngamiland":{lat:-19.5,lng:23},"Chobe":{lat:-18.5,lng:24.5},"Lobatse":{lat:-25.2167,lng:25.6667},
+  "Ghanzi":{lat:-21.7,lng:21.65},"Maun":{lat:-19.9833,lng:23.4167},
+  "Palapye":{lat:-22.55,lng:27.1333},"Kanye":{lat:-24.9833,lng:25.35},
+  "Mochudi":{lat:-24.4167,lng:26.15},"Selebi-Phikwe":{lat:-21.9833,lng:27.8333}
+};
+function extractLoc(n){const p=n.split(' — ');return p.length>1?p[1].trim():'Gaborone';}
+function getCoords(loc){return locationCoords[loc]||{lat:-24.6282+(Math.random()-.5)*.5,lng:25.9231+(Math.random()-.5)*.5};}
+
+const clinics = clinicNames.map((name,idx)=>{
+  const location=extractLoc(name); const coords=getCoords(location);
+  return {id:idx+1,name,location,lat:coords.lat,lng:coords.lng,
+    waitTime:Math.floor(Math.random()*50)+10,
+    load:Math.floor(Math.random()*70)+20,
+    stock:{Amoxicillin:Math.floor(Math.random()*150)+5,Paracetamol:Math.floor(Math.random()*200)+10,
+      Metformin:Math.floor(Math.random()*120)+5,Insulin:Math.floor(Math.random()*80)+2,
+      Ibuprofen:Math.floor(Math.random()*100)+5,Omeprazole:Math.floor(Math.random()*90)+5,
+      Atenolol:Math.floor(Math.random()*60)+3,Atorvastatin:Math.floor(Math.random()*70)+3},
+    status:'active',facilityId:idx+1};
+});
+
+// Central Medical Store inventory
+let cmsInventory = {
+  Amoxicillin:   {total:15000,reserved:2000,reorderLevel:3000,supplier:'PharmaCo Ltd'},
+  Paracetamol:   {total:22000,reserved:3000,reorderLevel:5000,supplier:'MediSupply BW'},
+  Metformin:     {total:8500, reserved:1000,reorderLevel:2000,supplier:'DiaCare Inc'},
+  Insulin:       {total:3200, reserved:800, reorderLevel:1000,supplier:'BioPharm Ltd'},
+  Ibuprofen:     {total:9000, reserved:1200,reorderLevel:2000,supplier:'PharmaCo Ltd'},
+  Omeprazole:    {total:6000, reserved:800, reorderLevel:1500,supplier:'GastroMed'},
+  Atenolol:      {total:4500, reserved:600, reorderLevel:1000,supplier:'CardioSupply'},
+  Atorvastatin:  {total:5200, reserved:700, reorderLevel:1200,supplier:'LipidCare BW'},
+};
+
+let prescriptions = [
+  {code:'RX-1001',medicine:'Amoxicillin',patient:'Kabo Mothibi',dosage:'500mg twice daily',duration:'7 days',notes:'',used:false,revoked:false,issuedAt:new Date().toISOString(),issuedBy:'doctor',facilityId:1,facilityName:'Bokamoso Medical Clinic'},
+  {code:'RX-1002',medicine:'Paracetamol',patient:'Sethebe Ditsele',dosage:'1g as needed',duration:'5 days',notes:'',used:false,revoked:false,issuedAt:new Date().toISOString(),issuedBy:'doctor',facilityId:1,facilityName:'Bokamoso Medical Clinic'},
+  {code:'RX-1003',medicine:'Metformin',patient:'Tiro Nkane',dosage:'850mg daily',duration:'30 days',notes:'Take with food',used:false,revoked:false,issuedAt:new Date().toISOString(),issuedBy:'doctor',facilityId:2,facilityName:'Serowe Central Hospital'},
+  {code:'RX-1004',medicine:'Insulin',patient:'M. Seretse',dosage:'10 units',duration:'Ongoing',notes:'',used:true,revoked:false,issuedAt:new Date().toISOString(),issuedBy:'doctor',facilityId:1,facilityName:'Bokamoso Medical Clinic'},
+];
+
+let patients = [
+  {id:1,name:'Kabo Mothibi',age:34,gender:'Male',phone:'+267 71 234 567',idNum:'123456789',aid:'BOMAID',notes:'Hypertension, on Metformin',status:'active',facilityId:1,registeredAt:new Date().toISOString()},
+  {id:2,name:'Sethebe Ditsele',age:28,gender:'Female',phone:'+267 72 345 678',idNum:'234567890',aid:'PULA',notes:'Asthma — carries inhaler',status:'active',facilityId:1,registeredAt:new Date().toISOString()},
+  {id:3,name:'Tiro Nkane',age:55,gender:'Male',phone:'+267 73 456 789',idNum:'345678901',aid:'None',notes:'Diabetes Type 2',status:'active',facilityId:2,registeredAt:new Date().toISOString()},
+];
+
+let staff = [
+  {id:1,name:'Dr. K. Mokobi',role:'admin-doctor',username:'doctor',phone:'+267 71 100 001',email:'mokobi@pulseflow.bw',facilityId:1,status:'active'},
+  {id:2,name:'Ph. T. Setshedi',role:'admin-chemist',username:'chemist',phone:'+267 71 100 002',email:'setshedi@pulseflow.bw',facilityId:null,status:'active'},
+  {id:3,name:'R. O. Molapo',role:'receptionist',username:'receptionist',phone:'+267 71 100 003',email:'molapo@pulseflow.bw',facilityId:1,status:'active'},
+];
+
+let appointments = [
+  {id:1,patient:'Kabo Mothibi',doctor:'Dr. K. Mokobi',date:'2026-03-24',time:'09:00 AM',notes:'Follow-up hypertension',status:'confirmed',facilityId:1},
+  {id:2,patient:'Sethebe Ditsele',doctor:'Dr. K. Mokobi',date:'2026-03-24',time:'10:00 AM',notes:'Asthma review',status:'confirmed',facilityId:1},
+  {id:3,patient:'Walk-in',doctor:'Dr. K. Mokobi',date:'2026-03-25',time:'08:30 AM',notes:'General consultation',status:'pending',facilityId:1},
+];
+
+let distributionLog = [
+  {id:1,medicine:'Amoxicillin',from:'Central Store',to:'Bokamoso Medical Clinic',qty:500,priority:'Normal',date:new Date().toISOString(),status:'delivered'},
+  {id:2,medicine:'Insulin',from:'Central Store',to:'Serowe Central Hospital',qty:100,priority:'Urgent',date:new Date().toISOString(),status:'in-transit'},
+];
+
+let auditLogData = [];
+let notifications = [
+  {type:'crit',msg:'Insulin stock critically low at 8 clinics',time:'08:12'},
+  {type:'warn',msg:'Amoxicillin approaching reorder level at Central Store',time:'09:47'},
+  {type:'info',msg:'New prescription RX-1004 issued by Dr. Mokobi',time:'11:30'},
+];
+let settings = {refreshInterval:8,lowStockThreshold:10,critStockThreshold:5,highLoadThreshold:80,reorderThreshold:20};
+
+// State
+let currentUser=null, userRole=null, currentPanel='dashboard', locationFilter='All';
+let patientSearchQuery='', prescFilter='all', invMedFilter='', staffSearchQ='', apptSearchQ='';
+let confirmResolve=null;
+
+// ═══════════════════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg,type='ok'){
+  const t=document.getElementById('toastMsg');
+  t.textContent=msg; t.className='toast';
+  if(type==='err')t.classList.add('err');
+  if(type==='warn')t.classList.add('warn');
+  requestAnimationFrame(()=>t.classList.add('show'));
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showConfirm(title,msg){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').textContent=msg;
+  document.getElementById('confirmOverlay').classList.add('open');
+  return new Promise(res=>{confirmResolve=res;});
+}
+function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('open');if(confirmResolve)confirmResolve(false);confirmResolve=null;}
+document.getElementById('confirmYesBtn').onclick=()=>{document.getElementById('confirmOverlay').classList.remove('open');if(confirmResolve)confirmResolve(true);confirmResolve=null;};
+
+function addAudit(action,details){
+  const now=new Date();
+  const time=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  auditLogData.unshift({time,user:currentUser?.name||'System',role:userRole||'—',action,details});
+  if(auditLogData.length>100)auditLogData.pop();
+}
+function genCode(){return 'RX-'+Math.floor(Math.random()*9000+1000);}
+function nextId(arr){return arr.length?Math.max(...arr.map(x=>x.id))+1:1;}
+function getFacilityName(id){const c=clinics.find(x=>x.id===id);return c?c.name.split(' — ')[0]:'Unknown';}
+function getFilteredClinics(){
+  if(locationFilter==='All')return clinics;
+  return clinics.filter(c=>c.location===locationFilter||c.location.includes(locationFilter));
+}
+function getFacilityClinics(){
+  if(!currentUser?.facilityId)return clinics;
+  return clinics.filter(c=>c.id===currentUser.facilityId);
+}
+function getScopedPatients(){
+  if(!currentUser)return [];
+  if(userRole==='admin-doctor')return patients.filter(p=>p.facilityId===currentUser.facilityId);
+  return patients;
+}
+function getScopedPrescriptions(){
+  if(!currentUser)return [];
+  if(userRole==='admin-doctor')return prescriptions.filter(p=>p.facilityId===currentUser.facilityId);
+  return prescriptions; // chemist sees all
+}
+// RBAC permission check — server-side equivalent
+function canDo(action){
+  if(!currentUser||!userRole)return false;
+  const cfg=ROLE_CONFIG[userRole];
+  if(!cfg)return false;
+  switch(action){
+    case 'view-patients':return cfg.perms.patients!==false;
+    case 'edit-patients':return cfg.perms.patients===true;
+    case 'issue-prescription':return cfg.perms.prescriptions==='issue';
+    case 'dispense-prescription':return cfg.perms.prescriptions==='dispense';
+    case 'view-prescriptions':return cfg.perms.prescriptions!==false;
+    case 'view-inventory':return cfg.perms.inventory!==false;
+    case 'restock':return cfg.perms.inventory==='facility'||cfg.perms.inventory==='cms';
+    case 'manage-cms':return cfg.perms.cms===true;
+    case 'manage-staff':return cfg.perms.staff===true;
+    case 'manage-schedule':return cfg.perms.schedule===true||cfg.perms.staff===true;
+    case 'view-reports':return true;
+    case 'view-settings':return ['admin-doctor','admin-cms','admin-manager'].includes(userRole);
+    default:return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════════════
+function openLoginModal(){openModal('loginModal');}
+function doLogin(){
+  const username=document.getElementById('loginUsername').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  const role=document.getElementById('loginRole').value;
+  const btn=document.getElementById('loginBtn2');
+  const user=USERS[username];
+  if(!user||user.password!==password||user.role!==role){
+    showToast('Invalid credentials or role mismatch.',true); return;
+  }
+  btn.innerHTML='<span class="spinner"></span>Logging in…';
+  setTimeout(()=>{
+    btn.textContent='Login';
+    currentUser={username,name:user.name,role,facilityId:user.facility};
+    userRole=role;
+    closeModal('loginModal');
+    const badge=document.getElementById('navUserBadge');
+    badge.classList.add('visible');
+    document.getElementById('navUserName').textContent=`${user.name}`;
+    document.getElementById('loginBtn').style.display='none';
+    // Role dot color
+    const dotColors={'admin-doctor':'#667eea','admin-chemist':'#2dd4b6','admin-cms':'#9b5de5','admin-manager':'#f77f00','receptionist':'#22c55e','patient':'#ffbb00'};
+    document.getElementById('navRoleDot').style.background=dotColors[role]||'#fff';
+    addAudit('Login',`${user.name} signed in as ${role}`);
+    showToast(`Welcome, ${user.name}!`);
+    if(role==='patient')showPage('patient');
+    else showPage('admin');
+  },600);
+}
+function doLogout(){
+  addAudit('Logout',`${currentUser?.name} signed out`);
+  currentUser=null; userRole=null;
+  document.getElementById('navUserBadge').classList.remove('visible');
+  document.getElementById('loginBtn').style.display='';
+  showPage('home'); showToast('Signed out.');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PAGE NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+function showPage(name){
+  if(name==='admin'&&!currentUser){showToast('Please login first.','err');openLoginModal();return;}
+  if(name==='admin'&&userRole==='patient'){showToast('Admin access required.','err');return;}
+  if(name==='patient'&&!currentUser){showToast('Please login first.','err');openLoginModal();return;}
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active-page'));
+  document.getElementById(`${name}-page`).classList.add('active-page');
+  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
+  const nl=document.getElementById(`nav-${name}`);if(nl)nl.classList.add('active');
+  if(name==='admin'){setupAdminUI();switchPanel('dashboard');}
+  if(name==='patient')loadPatientData();
+}
+function toggleSidebar(){document.getElementById('admSidebar').classList.toggle('exp');}
+
+// ═══════════════════════════════════════════════════════════════
+//  ADMIN SETUP
+// ═══════════════════════════════════════════════════════════════
+function setupAdminUI(){
+  if(!currentUser||!ROLE_CONFIG[userRole])return;
+  const cfg=ROLE_CONFIG[userRole];
+  // Sidebar class
+  const sb=document.getElementById('admSidebar');
+  sb.className='adm-sidebar '+cfg.sbCls;
+  // Build sidebar nav
+  const nav=document.getElementById('sidebarNav');
+  nav.innerHTML=cfg.navItems.map(item=>`
+    <div class="nav-item" data-panel="${item.id}" onclick="switchPanel('${item.id}')" title="${item.label}">
+      <span>${item.icon}</span><span class="nl">${item.label}</span>
+    </div>`).join('');
+  // Avatar
+  document.getElementById('admAvatarInitial').textContent=currentUser.name[0];
+  document.getElementById('admAvatarName').textContent=currentUser.name;
+  document.getElementById('admAvatarRole').textContent=cfg.label;
+  document.getElementById('admAvatar').style.background=cfg.avatarBg;
+  // Role tag
+  const rt=document.getElementById('roleTagDisplay');
+  rt.textContent=cfg.label; rt.className='role-tag '+cfg.cls;
+  // Panel subtitle
+  const fName=currentUser.facilityId?getFacilityName(currentUser.facilityId):'All Facilities';
+  document.getElementById('panelSubtitle').textContent=`${cfg.label} Dashboard · ${fName} · ${new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'})}`;
+  // Topbar filters
+  buildTopbarFilters();
+}
+
+function buildTopbarFilters(){
+  const el=document.getElementById('topbarFilters');
+  if(['admin-cms','admin-manager','admin-doctor'].includes(userRole)){
+    el.innerHTML=`
+      <div class="chip act" id="fAll" onclick="setLocFilter('All')">📍 All</div>
+      <div class="chip" id="fGab" onclick="setLocFilter('Gaborone')">Gaborone</div>
+      <div class="chip" id="fFranc" onclick="setLocFilter('Francistown')">Francistown</div>`;
+  } else {
+    el.innerHTML='';
+  }
+}
+function setLocFilter(loc){
+  locationFilter=loc;
+  document.querySelectorAll('#topbarFilters .chip').forEach(c=>c.classList.remove('act'));
+  if(loc==='All')document.getElementById('fAll')?.classList.add('act');
+  else if(loc==='Gaborone')document.getElementById('fGab')?.classList.add('act');
+  else if(loc==='Francistown')document.getElementById('fFranc')?.classList.add('act');
+  if(currentPanel==='dashboard')renderPanel('dashboard');
+  else if(currentPanel==='clinics')renderPanel('clinics');
+  else if(currentPanel==='inventory')renderPanel('inventory');
+  else if(currentPanel==='cms-inventory')renderPanel('cms-inventory');
+}
+
+function switchPanel(panel){
+  currentPanel=panel;
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('act'));
+  document.querySelector(`.nav-item[data-panel="${panel}"]`)?.classList.add('act');
+  document.querySelectorAll('.adm-panel').forEach(p=>p.classList.remove('act'));
+  const el=document.getElementById(`panel-${panel}`);
+  if(el)el.classList.add('act');
+  const titles={dashboard:'Dashboard',patients:'Patient Management',prescriptions:'Prescriptions',
+    inventory:'Medicine Inventory',clinics:'Clinic Management',reports:'Reports & Analytics',
+    schedule:'Appointment Schedule','cms-inventory':'Central Inventory',distribution:'Medicine Distribution',staff:'Staff Management'};
+  document.getElementById('panelTitle').textContent=titles[panel]||panel;
+  renderPanel(panel);
+}
+
+function renderPanel(panel){
+  if(panel==='dashboard')renderDashboard();
+  else if(panel==='patients')renderPatients();
+  else if(panel==='prescriptions')renderPrescriptions();
+  else if(panel==='inventory')renderInventory();
+  else if(panel==='clinics')renderClinics();
+  else if(panel==='reports')renderReports();
+  else if(panel==='schedule')renderSchedule();
+  else if(panel==='cms-inventory')renderCmsInventory();
+  else if(panel==='distribution')renderDistribution();
+  else if(panel==='staff')renderStaff();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ACCESS DENIED BLOCK
+// ═══════════════════════════════════════════════════════════════
+function accessDenied(panelId,msg){
+  document.getElementById(`panel-${panelId}`).innerHTML=`
+    <div class="access-denied">
+      <div class="icon">🔒︎</div>
+      <h3 style="color:var(--text);margin-bottom:8px;">Access Restricted</h3>
+      <p>${msg||'You do not have permission to view this section.'}</p>
+      <p style="font-size:11px;margin-top:10px;color:var(--muted);">Contact your system administrator if you believe this is an error.</p>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DASHBOARD — role-aware
+// ═══════════════════════════════════════════════════════════════
+function renderDashboard(){
+  if(userRole==='receptionist'){renderSchedule();return;}
+  if(userRole==='admin-cms'){renderCmsDashboard();return;}
+  if(userRole==='admin-doctor')renderDoctorDashboard();
+  else if(userRole==='admin-chemist')renderChemistDashboard();
+  else if(userRole==='admin-manager')renderManagerDashboard();
+}
+
+function renderDoctorDashboard(){
+  const fc=getFacilityClinics();
+  const myPats=getScopedPatients();
+  const myPresc=getScopedPrescriptions().filter(p=>!p.used&&!p.revoked);
+  const avgWait=fc.length?Math.round(fc.reduce((s,c)=>s+c.waitTime,0)/fc.length):0;
+  const el=document.getElementById('panel-dashboard');
+  el.innerHTML=`
+    <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);">
+      <div class="metric-card hl" style="background:linear-gradient(135deg,var(--blue),#4a3eb8);">
+        <div class="metric-lbl" style="color:rgba(255,255,255,.7);">My Patients</div>
+        <div class="metric-val" style="color:white;">${myPats.length}</div>
+        <div class="metric-sub" style="color:rgba(255,255,255,.6);">At ${getFacilityName(currentUser.facilityId)}</div>
+        <div class="metric-chg up" style="color:rgba(255,255,255,.85);">▲ ${myPats.filter(p=>p.status==='active').length} active</div>
+      </div>
+      <div class="metric-card"><div class="metric-lbl">Active Prescriptions</div><div class="metric-val">${myPresc.length}</div><div class="metric-sub">Issued by me</div><div class="metric-chg up">▲ Ready to dispense</div></div>
+      <div class="metric-card"><div class="metric-lbl">Avg Wait Time</div><div class="metric-val">${avgWait}<span style="font-size:13px"> min</span></div><div class="metric-sub">My facility</div><div class="metric-chg ${avgWait>settings.highLoadThreshold/2?'dn':'up'}">${avgWait<25?'▲ Low':'▼ Moderate'}</div></div>
+      <div class="metric-card"><div class="metric-lbl">Today's Appointments</div><div class="metric-val">${appointments.filter(a=>a.facilityId===currentUser.facilityId).length}</div><div class="metric-sub">Scheduled</div><div class="metric-chg up">▲ Confirmed</div></div>
+    </div>
+    <div class="chart-row" style="grid-template-columns:1.5fr 1fr;">
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">Recent Prescriptions (My Facility)</div><div class="chart-sub">Doctor-scoped view</div></div>
+          <button class="adm-btn" onclick="openModal('issuePrescModal')">+ Issue</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;">
+          ${getScopedPrescriptions().slice(0,8).map(p=>{
+            const st=p.revoked?'revoked':p.used?'used':'active';
+            return `<div class="presc-item">
+              <span class="presc-code">${p.code}</span>
+              <span style="flex:1;color:var(--muted);font-size:10px;">${p.medicine} · ${p.patient}</span>
+              <span class="badge ${st==='active'?'ok':st==='used'?'med':'low'}">${st}</span>
+              ${!p.used&&!p.revoked?`<button class="mini-btn red" onclick="revokePrescription('${p.code}')">Revoke</button>`:''}
+            </div>`;
+          }).join('')||'<div style="color:var(--muted);font-size:12px;padding:10px;">No prescriptions yet.</div>'}
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">My Patients (Facility)</div></div>
+          <button class="adm-btn" onclick="switchPanel('patients')">View All</button>
+        </div>
+        ${myPats.slice(0,5).map(p=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;">
+            <div><strong>${p.name}</strong><br><span style="color:var(--muted);font-size:10px;">${p.notes?.slice(0,30)||'—'}</span></div>
+            <span class="badge ok">${p.status}</span>
+          </div>`).join('')||'<p style="color:var(--muted);font-size:12px;">No patients.</p>'}
+      </div>
+    </div>
+    <div class="chart-row" style="grid-template-columns:1fr;">
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">Audit Log</div><div class="chart-sub">Doctor-accessible events</div></div></div>
+        <div class="audit-list" id="auditLogs"></div>
+      </div>
+    </div>`;
+  renderAuditLog();
+}
+
+function renderChemistDashboard(){
+  const allPresc=prescriptions;
+  const active=allPresc.filter(p=>!p.used&&!p.revoked).length;
+  const dispensed=allPresc.filter(p=>p.used).length;
+  const byFacility={};
+  allPresc.forEach(p=>{byFacility[p.facilityName]=(byFacility[p.facilityName]||0)+1;});
+  const el=document.getElementById('panel-dashboard');
+  el.innerHTML=`
+    <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);">
+      <div class="metric-card hl" style="background:linear-gradient(135deg,var(--teal),#0d9488);">
+        <div class="metric-lbl" style="color:rgba(255,255,255,.7);">All Prescriptions</div>
+        <div class="metric-val" style="color:white;">${allPresc.length}</div>
+        <div class="metric-sub" style="color:rgba(255,255,255,.6);">Global access</div>
+      </div>
+      <div class="metric-card"><div class="metric-lbl">Active / Pending</div><div class="metric-val">${active}</div><div class="metric-sub">Ready to dispense</div><div class="metric-chg up">▲ Awaiting</div></div>
+      <div class="metric-card"><div class="metric-lbl">Dispensed</div><div class="metric-val">${dispensed}</div><div class="metric-sub">Completed today</div></div>
+      <div class="metric-card"><div class="metric-lbl">Facilities</div><div class="metric-val">${Object.keys(byFacility).length}</div><div class="metric-sub">With prescriptions</div></div>
+    </div>
+    <div class="chart-row" style="grid-template-columns:1.4fr 1fr;">
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">All Prescriptions — Global View</div><div class="chart-sub">Chemist sees all facilities</div></div>
+          <button class="adm-btn" onclick="switchPanel('prescriptions')">Full List</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;max-height:250px;overflow-y:auto;">
+          ${allPresc.filter(p=>!p.used&&!p.revoked).map(p=>`
+            <div class="presc-item">
+              <span class="presc-code">${p.code}</span>
+              <span style="flex:1;font-size:10px;color:var(--muted);">${p.medicine} · ${p.patient}</span>
+              <span class="facility-badge" style="font-size:8px;">${p.facilityName?.split(' — ')[0]||'—'}</span>
+              <button class="mini-btn grn" onclick="dispensePrescription('${p.code}')">Dispense</button>
+            </div>`).join('')||'<div style="color:var(--muted);font-size:12px;padding:10px;">No active prescriptions.</div>'}
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">Prescriptions by Facility</div></div></div>
+        ${Object.entries(byFacility).slice(0,8).map(([f,n])=>`
+          <div class="hbar-row">
+            <div class="hbar-lbl" title="${f}">${f.split(' — ')[0]}</div>
+            <div class="hbar-track"><div class="hbar-fill pf-teal" style="width:${Math.min(100,n*12)}%"><span class="hbar-fill-val">${n}</span></div></div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderManagerDashboard(){
+  const myClinic=clinics.find(c=>c.id===currentUser.facilityId);
+  const myStaff=staff.filter(s=>s.facilityId===currentUser.facilityId);
+  const myAppts=appointments.filter(a=>a.facilityId===currentUser.facilityId);
+  const el=document.getElementById('panel-dashboard');
+  el.innerHTML=`
+    <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);">
+      <div class="metric-card hl" style="background:linear-gradient(135deg,var(--orange),#d35400);">
+        <div class="metric-lbl" style="color:rgba(255,255,255,.7);">${getFacilityName(currentUser.facilityId)}</div>
+        <div class="metric-val" style="color:white;">${myClinic?Math.round(myClinic.load):0}<span style="font-size:13px">%</span></div>
+        <div class="metric-sub" style="color:rgba(255,255,255,.6);">Facility load</div>
+      </div>
+      <div class="metric-card"><div class="metric-lbl">Staff Members</div><div class="metric-val">${myStaff.length}</div><div class="metric-sub">Active at facility</div></div>
+      <div class="metric-card"><div class="metric-lbl">Today's Appointments</div><div class="metric-val">${myAppts.length}</div><div class="metric-sub">Overview only</div></div>
+      <div class="metric-card"><div class="metric-lbl">Wait Time</div><div class="metric-val">${myClinic?Math.round(myClinic.waitTime):0}<span style="font-size:13px"> min</span></div><div class="metric-sub">Current estimate</div></div>
+    </div>
+    <div class="chart-row" style="grid-template-columns:1fr 1fr;">
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">Local Stock Overview</div><div class="chart-sub">Facility inventory</div></div>
+          <button class="adm-btn" onclick="switchPanel('inventory')">Full Inventory</button>
+        </div>
+        ${myClinic?Object.entries(myClinic.stock).map(([m,v])=>{
+          const cls=v<settings.critStockThreshold?'pf-pink':v<settings.lowStockThreshold?'pf-yellow':'pf-teal';
+          return `<div class="hbar-row">
+            <div class="hbar-lbl">${m}</div>
+            <div class="hbar-track"><div class="hbar-fill ${cls}" style="width:${Math.min(100,v/2)}%"><span class="hbar-fill-val">${v}</span></div></div>
+            ${v<settings.lowStockThreshold?'<span class="stock-pill sp-low">LOW</span>':''}
+          </div>`;
+        }).join(''):'<p style="color:var(--muted);">No data.</p>'}
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">Staff Roster</div></div>
+          <button class="adm-btn" onclick="switchPanel('staff')">Manage</button>
+        </div>
+        ${myStaff.map(s=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;">
+            <div><strong>${s.name}</strong><br><span style="color:var(--muted);font-size:10px;">${s.role}</span></div>
+            <span class="badge ok">${s.status}</span>
+          </div>`).join('')||'<p style="color:var(--muted);font-size:12px;">No staff.</p>'}
+      </div>
+    </div>`;
+}
+
+function renderCmsDashboard(){
+  const allMeds=Object.keys(cmsInventory);
+  const totalUnits=allMeds.reduce((s,m)=>s+cmsInventory[m].total,0);
+  const alerts=allMeds.filter(m=>cmsInventory[m].total-cmsInventory[m].reserved<cmsInventory[m].reorderLevel).length;
+  const el=document.getElementById('panel-dashboard');
+  el.innerHTML=`
+    <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);">
+      <div class="metric-card hl" style="background:linear-gradient(135deg,var(--purple),#7b2fc4);">
+        <div class="metric-lbl" style="color:rgba(255,255,255,.7);">Central Stock (Total Units)</div>
+        <div class="metric-val" style="color:white;">${totalUnits.toLocaleString()}</div>
+        <div class="metric-sub" style="color:rgba(255,255,255,.6);">All medicines</div>
+      </div>
+      <div class="metric-card"><div class="metric-lbl">Medicine Types</div><div class="metric-val">${allMeds.length}</div><div class="metric-sub">In CMS catalog</div></div>
+      <div class="metric-card"><div class="metric-lbl">Reorder Alerts</div><div class="metric-val">${alerts}</div><div class="metric-sub">Below reorder level</div><div class="metric-chg ${alerts>0?'dn':'up'}">${alerts>0?'⚠ Attention needed':'✓ All good'}</div></div>
+      <div class="metric-card"><div class="metric-lbl">Distribution Orders</div><div class="metric-val">${distributionLog.length}</div><div class="metric-sub">${distributionLog.filter(d=>d.status==='in-transit').length} in transit</div></div>
+    </div>
+    <div class="chart-row" style="grid-template-columns:1fr 1fr;">
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">Central Store Stock Levels</div></div>
+          <button class="adm-btn pur" onclick="switchPanel('cms-inventory')">Manage</button>
+        </div>
+        ${allMeds.map(m=>{
+          const item=cmsInventory[m];
+          const avail=item.total-item.reserved;
+          const pct=Math.min(100,(avail/item.reorderLevel)*50);
+          const cls=avail<item.reorderLevel?'pf-pink':avail<item.reorderLevel*2?'pf-yellow':'pf-teal';
+          return `<div class="hbar-row">
+            <div class="hbar-lbl" title="${m}">${m}</div>
+            <div class="hbar-track"><div class="hbar-fill ${cls}" style="width:${pct}%"><span class="hbar-fill-val">${avail.toLocaleString()}</span></div></div>
+            ${avail<item.reorderLevel?'<span class="stock-pill sp-crit">REORDER</span>':''}
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">Recent Distributions</div></div>
+          <button class="adm-btn" onclick="switchPanel('distribution')">All Orders</button>
+        </div>
+        ${distributionLog.slice(0,5).map(d=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;">
+            <div><strong>${d.medicine}</strong> ×${d.qty}<br><span style="color:var(--muted);font-size:10px;">→ ${d.to.split(' — ')[0]}</span></div>
+            <span class="badge ${d.status==='delivered'?'ok':'blue'}">${d.status}</span>
+          </div>`).join('')}
+        <button class="adm-btn" style="width:100%;margin-top:10px;" onclick="openModal('distributeModal');populateDistributeModal()">+ New Distribution</button>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PATIENTS PANEL
+// ═══════════════════════════════════════════════════════════════
+function renderPatients(){
+  if(!canDo('view-patients')){accessDenied('patients','Patient records are restricted to Doctor admins within their facility.');return;}
+  const list=getScopedPatients().filter(p=>!patientSearchQuery||
+    p.name.toLowerCase().includes(patientSearchQuery.toLowerCase())||
+    p.idNum?.includes(patientSearchQuery));
+  document.getElementById('panel-patients').innerHTML=`
+    <div class="tbl-card">
+      <div class="chart-hdr">
+        <div><div class="chart-ttl">Patient Registry</div><div class="chart-sub">${getScopedPatients().length} patients${currentUser.facilityId?' at '+getFacilityName(currentUser.facilityId):''}</div></div>
+        <div style="display:flex;gap:6px;">
+          ${canDo('edit-patients')?`<button class="adm-btn" onclick="openModal('addPatientModal')">+ Add Patient</button>`:''}
+          <button class="adm-btn sec" onclick="exportPatients()">↓ Export</button>
+        </div>
+      </div>
+      <div class="search-bar">
+        <input class="search-input" placeholder="Search by name or ID…" oninput="patientSearchQuery=this.value;renderPatients()">
+      </div>
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Medical Aid</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody>${list.length?list.map(p=>`
+          <tr>
+            <td>${p.id}</td><td><strong>${p.name}</strong></td><td>${p.age||'—'}</td><td>${p.gender||'—'}</td>
+            <td>${p.phone||'—'}</td><td>${p.aid||'None'}</td>
+            <td><span class="badge ${p.status==='active'?'ok':'low'}">${p.status}</span></td>
+            <td style="color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.notes||''}">${p.notes?.slice(0,30)||'—'}</td>
+            <td><div style="display:flex;gap:3px;">
+              ${canDo('edit-patients')?`<button class="mini-btn" onclick="openEditPatient(${patients.indexOf(p)})">Edit</button>`:''}
+              ${canDo('issue-prescription')?`<button class="mini-btn blu" onclick="issueForPatient('${p.name}')">Rx</button>`:''}
+              ${canDo('edit-patients')?`<button class="mini-btn red" onclick="confirmDeletePatient(${patients.indexOf(p)})">Del</button>`:''}
+            </div></td>
+          </tr>`).join(''):`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px;">No patients found.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function savePatient(){
+  if(!canDo('edit-patients')){showToast('Permission denied.','err');return;}
+  const name=document.getElementById('ptName').value.trim();
+  if(!name){showToast('Name is required.','err');return;}
+  const p={id:nextId(patients),name,age:parseInt(document.getElementById('ptAge').value)||null,
+    gender:document.getElementById('ptGender').value,phone:document.getElementById('ptPhone').value,
+    idNum:document.getElementById('ptId').value,aid:document.getElementById('ptAid').value,
+    notes:document.getElementById('ptNotes').value,status:'active',
+    facilityId:currentUser.facilityId,registeredAt:new Date().toISOString()};
+  patients.push(p);
+  addAudit('Patient Added',`${name} registered at ${getFacilityName(currentUser.facilityId)}`);
+  showToast(`Patient ${name} registered.`);
+  closeModal('addPatientModal');
+  document.getElementById('ptName').value='';document.getElementById('ptAge').value='';
+  document.getElementById('ptNotes').value='';
+  renderPatients();
+}
+function openEditPatient(idx){
+  const p=patients[idx];if(!p)return;
+  document.getElementById('editPtIdx').value=idx;
+  document.getElementById('editPtName').value=p.name;
+  document.getElementById('editPtAge').value=p.age||'';
+  document.getElementById('editPtGender').value=p.gender||'Male';
+  document.getElementById('editPtPhone').value=p.phone||'';
+  document.getElementById('editPtNotes').value=p.notes||'';
+  openModal('editPatientModal');
+}
+function updatePatient(){
+  const idx=parseInt(document.getElementById('editPtIdx').value);
+  const p=patients[idx];if(!p)return;
+  p.name=document.getElementById('editPtName').value.trim()||p.name;
+  p.age=parseInt(document.getElementById('editPtAge').value)||p.age;
+  p.gender=document.getElementById('editPtGender').value;
+  p.phone=document.getElementById('editPtPhone').value;
+  p.notes=document.getElementById('editPtNotes').value;
+  addAudit('Patient Updated',`${p.name} record edited`);
+  showToast(`${p.name} updated.`);
+  closeModal('editPatientModal');renderPatients();
+}
+async function confirmDeletePatient(idx){
+  const p=patients[idx];
+  const ok=await showConfirm('Delete Patient',`Delete ${p.name}? This cannot be undone.`);
+  if(!ok)return;
+  patients.splice(idx,1);
+  addAudit('Patient Deleted',`${p.name} removed`);
+  showToast(`${p.name} removed.`);renderPatients();
+}
+function exportPatients(){
+  const csv='ID,Name,Age,Gender,Phone,Medical Aid,Status\n'+
+    getScopedPatients().map(p=>`${p.id},"${p.name}",${p.age||''},${p.gender||''},${p.phone||''},${p.aid||''},${p.status}`).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='patients.csv';a.click();
+  addAudit('Export','Patient records exported');showToast('Exported patients.csv');
+}
+function issueForPatient(name){
+  document.getElementById('ipPatient').value=name;openModal('issuePrescModal');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PRESCRIPTIONS PANEL
+// ═══════════════════════════════════════════════════════════════
+function renderPrescriptions(){
+  if(!canDo('view-prescriptions')){accessDenied('prescriptions','You do not have access to prescriptions.');return;}
+  let list=getScopedPrescriptions();
+  if(prescFilter==='active')list=list.filter(p=>!p.used&&!p.revoked);
+  else if(prescFilter==='used')list=list.filter(p=>p.used);
+  else if(prescFilter==='revoked')list=list.filter(p=>p.revoked);
+  const canIssue=canDo('issue-prescription');
+  const canDispense=canDo('dispense-prescription');
+  const facilityNote=userRole==='admin-chemist'?'<span class="badge blue" style="font-size:9px;">Global Access — All Facilities</span>':'<span class="badge ok" style="font-size:9px;">Facility-Scoped</span>';
+  document.getElementById('panel-prescriptions').innerHTML=`
+    <div class="tbl-card">
+      <div class="chart-hdr">
+        <div><div class="chart-ttl">Prescription Management ${facilityNote}</div><div class="chart-sub">${getScopedPrescriptions().length} total · ${getScopedPrescriptions().filter(p=>!p.used&&!p.revoked).length} active</div></div>
+        <div style="display:flex;gap:6px;">
+          ${canIssue?`<button class="adm-btn" onclick="openModal('issuePrescModal')">+ Issue Prescription</button>`:''}
+          <button class="adm-btn sec" onclick="exportPrescriptions()">↓ Export</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+        ${['all','active','used','revoked'].map(f=>`<div class="chip ${prescFilter===f?'act':''}" onclick="prescFilter='${f}';renderPrescriptions()">${f.charAt(0).toUpperCase()+f.slice(1)}</div>`).join('')}
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Code</th><th>Medicine</th><th>Patient</th><th>Dosage</th><th>Duration</th><th>Facility</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody>${list.length?list.map(p=>{
+          const st=p.revoked?'revoked':p.used?'used':'active';
+          const stCls={active:'ok',used:'med',revoked:'low'}[st];
+          const d=new Date(p.issuedAt);
+          return `<tr>
+            <td><span class="presc-code">${p.code}</span></td>
+            <td>${p.medicine}</td><td>${p.patient}</td>
+            <td style="color:var(--muted);font-size:10px;">${p.dosage||'—'}</td>
+            <td style="color:var(--muted);font-size:10px;">${p.duration||'—'}</td>
+            <td><span class="facility-badge" style="font-size:8px;">${p.facilityName?.split(' — ')[0]||'—'}</span></td>
+            <td><span class="badge ${stCls}">${st}</span></td>
+            <td style="color:var(--muted);font-size:10px;">${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}</td>
+            <td><div style="display:flex;gap:3px;">
+              ${!p.used&&!p.revoked&&canIssue?`<button class="mini-btn red" onclick="revokePrescription('${p.code}')">Revoke</button>`:''}
+              ${!p.used&&!p.revoked&&canDispense?`<button class="mini-btn grn" onclick="dispensePrescription('${p.code}')">Dispense</button>`:''}
+            </div></td>
+          </tr>`;
+        }).join(''):`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px;">No prescriptions found.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function issuePrescriptionModal(){
+  if(!canDo('issue-prescription')){showToast('Only doctors can issue prescriptions.','err');return;}
+  const patient=document.getElementById('ipPatient').value.trim();
+  const med=document.getElementById('ipMedicine').value;
+  if(!patient||!med){showToast('Patient name and medicine are required.','err');return;}
+  const code=genCode();
+  prescriptions.unshift({code,medicine:med,patient,
+    dosage:document.getElementById('ipDosage').value,
+    duration:document.getElementById('ipDuration').value,
+    notes:document.getElementById('ipNotes').value,
+    used:false,revoked:false,issuedAt:new Date().toISOString(),
+    issuedBy:currentUser.username,facilityId:currentUser.facilityId,
+    facilityName:clinics.find(c=>c.id===currentUser.facilityId)?.name||'—'});
+  addAudit('Prescription Issued',`${code} → ${patient} for ${med}`);
+  showToast(`✓ Prescription ${code} issued.`);
+  closeModal('issuePrescModal');
+  ['ipPatient','ipMedicine','ipDosage','ipDuration','ipNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  if(currentPanel==='prescriptions')renderPrescriptions();
+  else if(currentPanel==='dashboard')renderDashboard();
+}
+function revokePrescription(code){
+  if(!canDo('issue-prescription')){showToast('Permission denied.','err');return;}
+  const p=prescriptions.find(pr=>pr.code===code);
+  if(!p||p.used||p.revoked)return;
+  p.revoked=true;
+  addAudit('Prescription Revoked',`${code} (${p.medicine} for ${p.patient})`);
+  showToast(`${code} revoked.`);
+  if(currentPanel==='prescriptions')renderPrescriptions();
+  else renderDashboard();
+}
+function dispensePrescription(code){
+  if(!canDo('dispense-prescription')){showToast('Only chemists can dispense.','err');return;}
+  const p=prescriptions.find(pr=>pr.code===code);if(!p)return;
+  p.used=true;
+  const clinic=clinics.find(c=>(c.stock[p.medicine]||0)>0);
+  if(clinic)clinic.stock[p.medicine]=Math.max(0,(clinic.stock[p.medicine]||0)-1);
+  addAudit('Dispensed',`${code} → ${p.patient} (${p.medicine})`);
+  showToast(`✓ ${code} dispensed — ${p.medicine} to ${p.patient}.`);
+  if(currentPanel==='prescriptions')renderPrescriptions();
+  else renderDashboard();
+}
+function exportPrescriptions(){
+  const csv='Code,Medicine,Patient,Dosage,Duration,Facility,Status,Date\n'+
+    getScopedPrescriptions().map(p=>`${p.code},${p.medicine},"${p.patient}","${p.dosage||''}","${p.duration||''}","${p.facilityName||''}",${p.revoked?'revoked':p.used?'used':'active'},${p.issuedAt}`).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='prescriptions.csv';a.click();
+  addAudit('Export','Prescriptions exported');showToast('Exported prescriptions.csv');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INVENTORY PANEL
+// ═══════════════════════════════════════════════════════════════
+function renderInventory(){
+  if(!canDo('view-inventory')){accessDenied('inventory','Inventory access is restricted.');return;}
+  const meds=['Amoxicillin','Paracetamol','Metformin','Insulin','Ibuprofen','Omeprazole','Atenolol','Atorvastatin'];
+  const fc=userRole==='admin-manager'?getFacilityClinics():getFilteredClinics();
+  const medData=meds.filter(m=>!invMedFilter||m.toLowerCase().includes(invMedFilter.toLowerCase())).map(m=>{
+    const total=fc.reduce((s,c)=>s+(c.stock[m]||0),0);
+    const critical=fc.filter(c=>(c.stock[m]||0)<settings.critStockThreshold).length;
+    const low=fc.filter(c=>(c.stock[m]||0)>=settings.critStockThreshold&&(c.stock[m]||0)<settings.lowStockThreshold).length;
+    return{m,total,critical,low};
+  });
+  const canRestock=canDo('restock');
+  document.getElementById('panel-inventory').innerHTML=`
+    <div class="chart-row" style="grid-template-columns:repeat(4,1fr);">
+      ${medData.slice(0,8).map(md=>{
+        const pct=Math.min(100,(md.total/(fc.length*80))*100);
+        const cls=md.critical>3?'pf-pink':md.low>5?'pf-yellow':'pf-teal';
+        return `<div class="chart-card" style="padding:14px;">
+          <div class="chart-hdr" style="margin-bottom:8px;">
+            <div><div class="chart-ttl" style="font-size:11px;">💊 ${md.m}</div><div class="chart-sub">${md.total.toLocaleString()} units</div></div>
+            ${canRestock?`<button class="adm-btn" style="padding:4px 10px;font-size:10px;" onclick="openRestockModal('${md.m}')">+ Restock</button>`:''}
+          </div>
+          <div class="progress-bar"><div class="progress-fill ${cls}" style="width:${pct.toFixed(0)}%"></div></div>
+          <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
+            <span class="stock-pill ${md.critical>0?'sp-crit':'sp-ok'}">● ${md.critical>3?'CRITICAL':md.low>5?'LOW':'GOOD'}</span>
+            ${md.critical?`<span class="stock-pill sp-crit">⚠ ${md.critical} crit</span>`:''}
+            ${md.low?`<span class="stock-pill sp-low">↓ ${md.low} low</span>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="tbl-card">
+      <div class="chart-hdr">
+        <div><div class="chart-ttl">Clinic-Level Stock Detail</div><div class="chart-sub">${fc.length} facilities shown</div></div>
+        <div style="display:flex;gap:6px;">
+          <input class="search-input" style="width:140px;" placeholder="Filter medicine…" oninput="invMedFilter=this.value;renderInventory()">
+          <button class="adm-btn sec" onclick="renderInventory()">↻ Refresh</button>
+          ${canRestock?`<button class="adm-btn grn" onclick="openModal('restockModal');populateRestockClinics()">+ Restock</button>`:''}
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="tbl">
+          <thead><tr><th>Clinic</th><th>Location</th>${medData.map(m=>`<th>${m.m.slice(0,5)}</th>`).join('')}<th>Action</th></tr></thead>
+          <tbody>${fc.slice(0,25).map(c=>`<tr>
+            <td><strong>${c.name.split(' — ')[0]}</strong></td>
+            <td style="color:var(--muted);font-size:10px;">${c.location}</td>
+            ${medData.map(({m})=>{const v=c.stock[m]||0;const cls=v<settings.critStockThreshold?'low':v<settings.lowStockThreshold?'med':'ok';return`<td><span class="badge ${cls}">${v}</span></td>`;}).join('')}
+            <td>${canRestock?`<button class="mini-btn" onclick="openRestockForClinic(${c.id})">Restock</button>`:'—'}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function populateRestockClinics(){
+  const sel=document.getElementById('rsClinic');
+  sel.innerHTML='<option value="">Select facility</option>'+
+    (userRole==='admin-manager'?getFacilityClinics():clinics).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+function openRestockModal(medName){
+  document.getElementById('rsName').value=medName;
+  populateRestockClinics();
+  document.getElementById('rsQty').value='';
+  openModal('restockModal');
+}
+function openRestockForClinic(cid){
+  const meds=['Amoxicillin','Paracetamol','Metformin','Insulin','Ibuprofen','Omeprazole','Atenolol','Atorvastatin'];
+  const c=clinics.find(x=>x.id===cid);if(!c)return;
+  const critical=[...meds].sort((a,b)=>(c.stock[a]||0)-(c.stock[b]||0))[0];
+  document.getElementById('rsName').value=critical;
+  populateRestockClinics();
+  document.getElementById('rsClinic').value=cid;
+  openModal('restockModal');
+}
+function doRestock(){
+  if(!canDo('restock')){showToast('Permission denied.','err');return;}
+  const med=document.getElementById('rsName').value;
+  const cid=parseInt(document.getElementById('rsClinic').value);
+  const qty=parseInt(document.getElementById('rsQty').value);
+  if(!med||!cid||!qty||qty<1){showToast('Fill all required fields.','err');return;}
+  const clinic=clinics.find(c=>c.id===cid);if(!clinic)return;
+  if(!clinic.stock[med])clinic.stock[med]=0;
+  clinic.stock[med]+=qty;
+  addAudit('Restock',`${med} +${qty} at ${clinic.name.split(' — ')[0]}`);
+  showToast(`✓ ${med} restocked: +${qty} units.`);
+  closeModal('restockModal');
+  renderInventory();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CMS INVENTORY PANEL
+// ═══════════════════════════════════════════════════════════════
+function renderCmsInventory(){
+  if(!canDo('manage-cms')){accessDenied('cms-inventory','CMS inventory is restricted to Central Medical Store administrators.');return;}
+  const meds=Object.keys(cmsInventory);
+  const fc=getFilteredClinics();
+
+  // Per-medicine network totals & status
+  const medNetworkData=meds.map(m=>{
+    const networkTotal=fc.reduce((s,c)=>s+(c.stock[m]||0),0);
+    const critCount=fc.filter(c=>(c.stock[m]||0)<settings.critStockThreshold).length;
+    const lowCount=fc.filter(c=>(c.stock[m]||0)>=settings.critStockThreshold&&(c.stock[m]||0)<settings.lowStockThreshold).length;
+    const cms=cmsInventory[m];
+    const cmsAvail=cms.total-cms.reserved;
+    return{m,networkTotal,critCount,lowCount,cms,cmsAvail};
+  });
+
+  document.getElementById('panel-cms-inventory').innerHTML=`
+
+    <!-- ── TOP SUMMARY CARDS ── -->
+    <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px;">
+      ${medNetworkData.slice(0,4).map(d=>{
+        const pct=Math.min(100,(d.cmsAvail/d.cms.reorderLevel)*50);
+        const cls=d.cmsAvail<d.cms.reorderLevel?'pf-pink':d.cmsAvail<d.cms.reorderLevel*2?'pf-yellow':'pf-teal';
+        return `<div class="metric-card">
+          <div class="metric-lbl">⫏⫐ ${d.m}</div>
+          <div class="metric-val">${d.cmsAvail.toLocaleString()}<span style="font-size:11px;color:var(--muted);"> CMS avail</span></div>
+          <div class="progress-bar" style="margin-top:6px;"><div class="progress-fill ${cls}" style="width:${pct}%"></div></div>
+          <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;">
+            <span style="font-size:9px;color:var(--muted);">Network: ${d.networkTotal.toLocaleString()} units</span>
+            ${d.critCount?`<span class="stock-pill sp-crit" style="font-size:9px;">⚠ ${d.critCount} crit</span>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- ── CENTRAL STORE TABLE ── -->
+    <div class="tbl-card" style="margin-bottom:14px;">
+      <div class="chart-hdr">
+        <div><div class="chart-ttl">𖠿 Central Medical Store Stock</div><div class="chart-sub">CMS-level holdings — national supply</div></div>
+        <div style="display:flex;gap:6px;">
+          <button class="adm-btn pur" onclick="openModal('distributeModal');populateDistributeModal()">⛟ Distribute</button>
+          <button class="adm-btn sec" onclick="exportCmsInventory()">↓ Export</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="tbl">
+          <thead><tr><th>Medicine</th><th>CMS Total</th><th>Reserved</th><th>Available</th><th>Network Total</th><th>Reorder Level</th><th>Supplier</th><th>CMS Status</th><th>Actions</th></tr></thead>
+          <tbody>${meds.map(m=>{
+            const d=medNetworkData.find(x=>x.m===m);
+            const st=d.cmsAvail<d.cms.reorderLevel?'REORDER':d.cmsAvail<d.cms.reorderLevel*2?'LOW':'OK';
+            const stCls={REORDER:'low',LOW:'med',OK:'ok'}[st];
+            return `<tr>
+              <td><strong>${m}</strong></td>
+              <td>${d.cms.total.toLocaleString()}</td>
+              <td style="color:var(--muted);">${d.cms.reserved.toLocaleString()}</td>
+              <td><strong style="color:${d.cmsAvail<d.cms.reorderLevel?'var(--pink)':'inherit'}">${d.cmsAvail.toLocaleString()}</strong></td>
+              <td style="color:var(--muted);">${d.networkTotal.toLocaleString()}</td>
+              <td style="color:var(--muted);">${d.cms.reorderLevel.toLocaleString()}</td>
+              <td style="color:var(--muted);font-size:10px;">${d.cms.supplier}</td>
+              <td><span class="badge ${stCls}">${st}</span></td>
+              <td><div style="display:flex;gap:3px;">
+                <button class="mini-btn" onclick="cmsRestockMed('${m}')">+ Stock</button>
+                <button class="mini-btn blu" onclick="openModal('distributeModal');populateDistributeModal('${m}')">Distribute</button>
+              </div></td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── FACILITY-LEVEL STOCK TABLE (full list) ── -->
+    <div class="tbl-card" style="margin-bottom:14px;">
+      <div class="chart-hdr">
+        <div><div class="chart-ttl">𖠿 Facility Stock Status — All ${fc.length} Clinics</div><div class="chart-sub">Live stock across the entire network</div></div>
+        <div style="display:flex;gap:6px;">
+          <input class="search-input" id="cmsFacSearch" placeholder="Filter clinic…" style="width:160px;" oninput="cmsFacFilter=this.value;renderCmsInventory()">
+          <button class="adm-btn sec" onclick="renderCmsInventory()">↻ Refresh</button>
+          <button class="adm-btn grn" onclick="exportFacilityStock()">↓ Export All</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="tbl" id="cmsFacTable">
+          <thead>
+            <tr>
+              <th>Clinic</th><th>Location</th><th>Wait</th><th>Load</th>
+              ${meds.map(m=>`<th title="${m}">${m.slice(0,5)}.</th>`).join('')}
+              <th>Status</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="cmsFacTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── BOTTOM: ALERTS + NETWORK BARS ── -->
+    <div class="chart-row" style="grid-template-columns:1fr 1fr;">
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">⚠️ Reorder & Critical Alerts</div><div class="chart-sub">Items needing immediate attention</div></div></div>
+        ${(()=>{
+          const alerts=[];
+          meds.forEach(m=>{
+            const d=medNetworkData.find(x=>x.m===m);
+            if(d.cmsAvail<d.cms.reorderLevel)alerts.push(`<div class="alert-card crit">⛫ <strong>CMS ${m}</strong> — ${d.cmsAvail.toLocaleString()} avail / reorder at ${d.cms.reorderLevel.toLocaleString()}<br><span style="font-size:10px;color:var(--muted);">Supplier: ${d.cms.supplier}</span></div>`);
+            if(d.critCount>0)alerts.push(`<div class="alert-card warn">𖠿 <strong>${m}</strong> critical at ${d.critCount} facilities (< ${settings.critStockThreshold} units)</div>`);
+          });
+          fc.filter(c=>c.load>settings.highLoadThreshold).slice(0,3).forEach(c=>{
+            alerts.push(`<div class="alert-card warn">🔴 <strong>${c.name.split(' — ')[0]}</strong> at ${Math.round(c.load)}% capacity</div>`);
+          });
+          return alerts.length?alerts.slice(0,8).join(''):'<p style="color:var(--teal);font-size:12px;">✓ No critical alerts. Network is healthy.</p>';
+        })()}
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">Network-Wide Medicine Totals</div><div class="chart-sub">All facilities combined</div></div></div>
+        ${meds.map(m=>{
+          const d=medNetworkData.find(x=>x.m===m);
+          const maxNet=Math.max(...meds.map(mm=>medNetworkData.find(x=>x.m===mm).networkTotal));
+          const pct=Math.min(100,(d.networkTotal/maxNet)*100);
+          const cls=d.critCount>5?'pf-pink':d.lowCount>8?'pf-yellow':'pf-teal';
+          return `<div class="hbar-row">
+            <div class="hbar-lbl" title="${m}">${m}</div>
+            <div class="hbar-track"><div class="hbar-fill ${cls}" style="width:${pct.toFixed(0)}%"><span class="hbar-fill-val">${d.networkTotal.toLocaleString()}</span></div></div>
+            <div class="hbar-extra" style="min-width:54px;">
+              ${d.critCount?`<span style="color:var(--pink);font-size:9px;">⚠${d.critCount}</span>`:''}
+              ${d.lowCount?`<span style="color:var(--yellow);font-size:9px;"> ↓${d.lowCount}</span>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  // Populate facility table body separately so filter works cleanly
+  renderCmsFacilityTable();
+}
+
+let cmsFacFilter='';
+function renderCmsFacilityTable(){
+  const meds=Object.keys(cmsInventory);
+  const fc=getFilteredClinics().filter(c=>!cmsFacFilter||
+    c.name.toLowerCase().includes(cmsFacFilter.toLowerCase())||
+    c.location.toLowerCase().includes(cmsFacFilter.toLowerCase()));
+  const tbody=document.getElementById('cmsFacTbody');
+  if(!tbody)return;
+  tbody.innerHTML=fc.map(c=>{
+    const overallStatus=
+      Object.values(c.stock).some(v=>v<settings.critStockThreshold)?'low':
+      c.load>settings.highLoadThreshold?'med':
+      Object.values(c.stock).some(v=>v<settings.lowStockThreshold)?'med':'ok';
+    const statusLabel={ok:'Healthy',med:'Attention',low:'Critical'}[overallStatus];
+    return `<tr>
+      <td><strong>${c.name.split(' — ')[0]}</strong></td>
+      <td style="color:var(--muted);font-size:10px;">${c.location}</td>
+      <td style="font-size:10px;">${Math.round(c.waitTime)}m</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:4px;min-width:70px;">
+          <span style="font-size:10px;">${Math.round(c.load)}%</span>
+          <div class="progress-bar" style="flex:1;margin:0;height:4px;">
+            <div class="progress-fill ${c.load>settings.highLoadThreshold?'pf-pink':'pf-teal'}" style="width:${Math.round(c.load)}%"></div>
+          </div>
+        </div>
+      </td>
+      ${meds.map(m=>{
+        const v=c.stock[m]||0;
+        const cls=v<settings.critStockThreshold?'low':v<settings.lowStockThreshold?'med':'ok';
+        return `<td><span class="badge ${cls}">${v}</span></td>`;
+      }).join('')}
+      <td><span class="badge ${overallStatus}">${statusLabel}</span></td>
+      <td><button class="mini-btn blu" onclick="openModal('distributeModal');populateDistributeModal('',${c.id})">Send Stock</button></td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="${meds.length+6}" style="text-align:center;color:var(--muted);padding:20px;">No facilities match filter.</td></tr>`;
+}
+
+function exportFacilityStock(){
+  const meds=Object.keys(cmsInventory);
+  const csv='Clinic,Location,Wait,Load%,'+meds.join(',')+',Status\n'+
+    clinics.map(c=>{
+      const st=Object.values(c.stock).some(v=>v<settings.critStockThreshold)?'Critical':c.load>settings.highLoadThreshold?'Busy':'Healthy';
+      return `"${c.name}",${c.location},${Math.round(c.waitTime)},${Math.round(c.load)},`+meds.map(m=>c.stock[m]||0).join(',')+`,${st}`;
+    }).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`facility_stock_${Date.now()}.csv`;a.click();
+  addAudit('Export','Full facility stock report downloaded');
+  showToast('Facility stock exported.');
+}
+
+function cmsRestockMed(m){
+  const qty=parseInt(prompt(`Add units to ${m} (Central Store):`)||0);
+  if(!qty||qty<1){showToast('Invalid quantity.','err');return;}
+  cmsInventory[m].total+=qty;
+  addAudit('CMS Restock',`${m} +${qty.toLocaleString()} units added to Central Store`);
+  showToast(`✓ ${m} + ${qty} units added to Central Store.`);
+  renderCmsInventory();
+}
+function exportCmsInventory(){
+  const csv='Medicine,Total,Reserved,Available,Reorder Level,Supplier\n'+
+    Object.entries(cmsInventory).map(([m,i])=>`${m},${i.total},${i.reserved},${i.total-i.reserved},${i.reorderLevel},"${i.supplier}"`).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='cms_inventory.csv';a.click();
+  showToast('CMS inventory exported.');
+}
+function populateDistributeModal(selectedMed, selectedFacId){
+  const medSel=document.getElementById('distMed');
+  const facSel=document.getElementById('distFacility');
+  medSel.innerHTML='<option value="">Select medicine</option>'+Object.keys(cmsInventory).map(m=>`<option value="${m}" ${m===selectedMed?'selected':''}>${m}</option>`).join('');
+  facSel.innerHTML='<option value="">Select facility</option>'+clinics.map(c=>`<option value="${c.id}" ${c.id===selectedFacId?'selected':''}>${c.name}</option>`).join('');
+}
+function doDistribute(){
+  if(!canDo('manage-cms')){showToast('Permission denied.','err');return;}
+  const med=document.getElementById('distMed').value;
+  const facId=parseInt(document.getElementById('distFacility').value);
+  const qty=parseInt(document.getElementById('distQty').value);
+  const priority=document.getElementById('distPriority').value;
+  if(!med||!facId||!qty||qty<1){showToast('Fill all fields.','err');return;}
+  const cms=cmsInventory[med];
+  if(!cms){showToast('Medicine not in CMS.','err');return;}
+  const avail=cms.total-cms.reserved;
+  if(qty>avail){showToast(`Only ${avail} units available.`,'warn');return;}
+  cms.reserved+=qty;
+  const clinic=clinics.find(c=>c.id===facId);
+  distributionLog.unshift({id:nextId(distributionLog),medicine:med,from:'Central Store',
+    to:clinic?.name||'Unknown',qty,priority,date:new Date().toISOString(),status:'in-transit'});
+  // Simulate delivery after 3 seconds
+  setTimeout(()=>{
+    const entry=distributionLog.find(d=>d.status==='in-transit'&&d.medicine===med);
+    if(entry){entry.status='delivered';cms.reserved-=qty;}
+    if(clinic)clinic.stock[med]=(clinic.stock[med]||0)+qty;
+    addAudit('Delivery Complete',`${med} ×${qty} delivered to ${clinic?.name?.split(' — ')[0]||'—'}`);
+    notifications.unshift({type:'info',msg:`✓ ${med} ×${qty} delivered to ${clinic?.name?.split(' — ')[0]}`,time:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})});
+    document.getElementById('notifCount').textContent=notifications.length;
+  },3000);
+  addAudit('Distribution',`${med} ×${qty} dispatched to ${clinic?.name?.split(' — ')[0]} (${priority})`);
+  showToast(`✓ ${med} ×${qty} dispatched (${priority}).`);
+  closeModal('distributeModal');
+  if(currentPanel==='distribution')renderDistribution();
+  else if(currentPanel==='cms-inventory')renderCmsInventory();
+  else renderDashboard();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DISTRIBUTION PANEL
+// ═══════════════════════════════════════════════════════════════
+function renderDistribution(){
+  if(!canDo('manage-cms')){accessDenied('distribution','Distribution management is for CMS Admins only.');return;}
+  document.getElementById('panel-distribution').innerHTML=`
+    <div class="tbl-card">
+      <div class="chart-hdr">
+        <div><div class="chart-ttl">Medicine Distribution Log</div><div class="chart-sub">${distributionLog.length} orders total</div></div>
+        <button class="adm-btn pur" onclick="openModal('distributeModal');populateDistributeModal()">+ New Distribution</button>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Medicine</th><th>From</th><th>To Facility</th><th>Qty</th><th>Priority</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody>${distributionLog.map(d=>`<tr>
+          <td>${d.id}</td><td><strong>${d.medicine}</strong></td>
+          <td style="color:var(--muted);font-size:10px;">${d.from}</td>
+          <td style="font-size:10px;">${d.to.split(' — ')[0]}</td>
+          <td><strong>${d.qty}</strong></td>
+          <td><span class="badge ${d.priority==='Emergency'?'low':d.priority==='Urgent'?'med':'blue'}">${d.priority}</span></td>
+          <td style="color:var(--muted);font-size:10px;">${new Date(d.date).toLocaleDateString()}</td>
+          <td><span class="badge ${d.status==='delivered'?'ok':'blue'}">${d.status}</span></td>
+        </tr>`).join('')||`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;">No distribution orders.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CLINICS PANEL (Manager + Doctor)
+// ═══════════════════════════════════════════════════════════════
+function renderClinics(){
+  const fc=userRole==='admin-manager'?getFacilityClinics():getFilteredClinics();
+  document.getElementById('panel-clinics').innerHTML=`
+    <div class="tbl-card">
+      <div class="chart-hdr">
+        <div><div class="chart-ttl">Clinic Management</div><div class="chart-sub">${fc.length} facilities</div></div>
+        <button class="adm-btn" onclick="refreshAllClinics()">↻ Refresh All</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="tbl">
+          <thead><tr><th>Clinic</th><th>Location</th><th>Wait</th><th>Load</th><th>Amox</th><th>Para</th><th>Insulin</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${fc.map(c=>{
+            const st=c.load>settings.highLoadThreshold?'med':Object.values(c.stock).some(v=>v<settings.critStockThreshold)?'low':'ok';
+            const sl={ok:'Healthy',med:'Busy',low:'Critical'}[st];
+            return `<tr>
+              <td><strong>${c.name.split(' — ')[0]}</strong></td>
+              <td style="color:var(--muted);font-size:10px;">${c.location}</td>
+              <td>${Math.round(c.waitTime)} min</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:5px;">
+                  ${Math.round(c.load)}%
+                  <div class="progress-bar" style="flex:1;margin:0;"><div class="progress-fill ${c.load>settings.highLoadThreshold?'pf-pink':'pf-teal'}" style="width:${Math.round(c.load)}%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge ${c.stock.Amoxicillin<10?'low':'ok'}">${c.stock.Amoxicillin||0}</span></td>
+              <td><span class="badge ${c.stock.Paracetamol<10?'low':'ok'}">${c.stock.Paracetamol||0}</span></td>
+              <td><span class="badge ${c.stock.Insulin<5?'low':'ok'}">${c.stock.Insulin||0}</span></td>
+              <td><span class="badge ${st}">${sl}</span></td>
+              <td><div style="display:flex;gap:3px;">
+                <button class="mini-btn" onclick="refreshClinic(${c.id})">↻</button>
+                <button class="mini-btn blu" onclick="viewClinicDetail(${c.id})">View</button>
+              </div></td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function refreshClinic(id){
+  const c=clinics.find(x=>x.id===id);if(!c)return;
+  c.waitTime=Math.max(8,Math.min(85,c.waitTime+(Math.random()-.5)*10));
+  c.load=Math.min(98,Math.max(20,c.load+(Math.random()-.5)*8));
+  Object.keys(c.stock).forEach(m=>{c.stock[m]=Math.max(0,Math.min(200,c.stock[m]+Math.floor(Math.random()*6)-2));});
+  addAudit('Clinic Updated',`${c.name.split(' — ')[0]} refreshed`);
+  showToast(`${c.name.split(' — ')[0]} updated.`);
+  if(currentPanel==='clinics')renderClinics();
+}
+function refreshAllClinics(){clinics.forEach(c=>refreshClinic(c.id));showToast('All clinics refreshed.');}
+function viewClinicDetail(id){
+  const c=clinics.find(x=>x.id===id);if(!c)return;
+  const m=document.createElement('div');m.className='modal open';
+  m.innerHTML=`<div class="modal-content">
+    <h3>𖠿 ${c.name}</h3>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">📍 ${c.location} &nbsp;·&nbsp; ⏱ ${Math.round(c.waitTime)} min wait &nbsp;·&nbsp; 📊 ${Math.round(c.load)}% load</p>
+    ${Object.entries(c.stock).map(([k,v])=>`<div class="hbar-row"><div class="hbar-lbl">${k}</div><div class="hbar-track"><div class="hbar-fill ${v<5?'pf-pink':v<10?'pf-yellow':'pf-teal'}" style="width:${Math.min(100,v/2)}%"><span class="hbar-fill-val">${v}</span></div></div></div>`).join('')}
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button onclick="refreshClinic(${c.id});this.closest('.modal').remove()">↻ Refresh</button>
+      <button class="secondary" onclick="this.closest('.modal').remove()">Close</button>
+    </div>
+  </div>`;
+  document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.remove();});
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SCHEDULE PANEL — Receptionist
+// ═══════════════════════════════════════════════════════════════
+function renderSchedule(){
+  if(!canDo('manage-schedule')&&userRole!=='admin-manager'){accessDenied('schedule','Scheduling access is restricted.');return;}
+  const myAppts=appointments.filter(a=>!currentUser.facilityId||a.facilityId===currentUser.facilityId)
+    .filter(a=>!apptSearchQ||a.patient.toLowerCase().includes(apptSearchQ.toLowerCase())||a.doctor.toLowerCase().includes(apptSearchQ.toLowerCase()));
+  document.getElementById('panel-schedule').innerHTML=`
+    <div class="tbl-card">
+      <div class="chart-hdr">
+        <div><div class="chart-ttl">Appointment Schedule</div><div class="chart-sub">${appointments.length} appointments at ${getFacilityName(currentUser.facilityId)}</div></div>
+        <button class="adm-btn" onclick="openModal('addApptModal')">+ New Slot</button>
+      </div>
+      <div class="search-bar">
+        <input class="search-input" placeholder="Search patient or doctor…" oninput="apptSearchQ=this.value;renderSchedule()">
+        <div class="chip" onclick="filterAppts('confirmed')">Confirmed</div>
+        <div class="chip" onclick="filterAppts('pending')">Pending</div>
+        <div class="chip act" onclick="filterAppts('all')">All</div>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Notes</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${myAppts.length?myAppts.map(a=>`<tr>
+          <td>${a.id}</td><td><strong>${a.patient}</strong></td><td>${a.doctor}</td>
+          <td>${a.date}</td><td>${a.time}</td>
+          <td style="color:var(--muted);font-size:10px;">${a.notes||'—'}</td>
+          <td><span class="badge ${a.status==='confirmed'?'ok':'med'}">${a.status}</span></td>
+          <td><div style="display:flex;gap:3px;">
+            ${a.status==='pending'?`<button class="mini-btn grn" onclick="confirmAppt(${a.id})">Confirm</button>`:''}
+            <button class="mini-btn red" onclick="cancelAppt(${a.id})">Cancel</button>
+          </div></td>
+        </tr>`).join(''):`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;">No appointments found.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+    <div class="chart-row" style="grid-template-columns:1fr;">
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">Week View</div></div></div>
+        <div class="schedule-grid">
+          ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((day,di)=>{
+            const dayAppts=appointments.filter(a=>new Date(a.date).getDay()===(di+1)%7);
+            return `<div class="sched-day">
+              <div class="sched-day-name">${day}</div>
+              ${dayAppts.length?dayAppts.slice(0,3).map(a=>`<div class="sched-slot" title="${a.patient} — ${a.time}">${a.time}</div>`).join(''):
+              '<div class="sched-slot empty">Free</div>'}
+              ${dayAppts.length>3?`<div class="sched-slot" style="font-size:7px;">+${dayAppts.length-3} more</div>`:''}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+function filterAppts(status){appointments.sort((a,b)=>status==='all'?0:a.status===status?-1:1);renderSchedule();}
+function confirmAppt(id){
+  const a=appointments.find(x=>x.id===id);if(!a)return;
+  a.status='confirmed';addAudit('Appointment Confirmed',`${a.patient} on ${a.date} ${a.time}`);
+  showToast(`Appointment confirmed for ${a.patient}.`);renderSchedule();
+}
+async function cancelAppt(id){
+  const a=appointments.find(x=>x.id===id);
+  const ok=await showConfirm('Cancel Appointment',`Cancel ${a.patient}'s appointment on ${a.date}?`);
+  if(!ok)return;
+  appointments=appointments.filter(x=>x.id!==id);
+  addAudit('Appointment Cancelled',`${a.patient} on ${a.date}`);
+  showToast('Appointment cancelled.');renderSchedule();
+}
+function saveAppointment(){
+  const patient=document.getElementById('apptPatient').value.trim();
+  const time=document.getElementById('apptTime').value;
+  const date=document.getElementById('apptDate').value;
+  if(!patient||!time||!date){showToast('Patient, date and time are required.','err');return;}
+  const a={id:nextId(appointments),patient,doctor:document.getElementById('apptDoctor').value||'TBC',
+    date,time,notes:document.getElementById('apptNotes').value,status:'confirmed',facilityId:currentUser.facilityId};
+  appointments.push(a);
+  addAudit('Appointment Booked',`${patient} on ${date} at ${time}`);
+  showToast(`Appointment booked for ${patient}.`);
+  closeModal('addApptModal');
+  ['apptPatient','apptDoctor','apptTime','apptNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderSchedule();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STAFF PANEL — Manager
+// ═══════════════════════════════════════════════════════════════
+function renderStaff(){
+  if(!canDo('manage-staff')){accessDenied('staff','Staff management is for facility managers only.');return;}
+  const myStaff=staff.filter(s=>!currentUser.facilityId||s.facilityId===currentUser.facilityId)
+    .filter(s=>!staffSearchQ||s.name.toLowerCase().includes(staffSearchQ.toLowerCase()));
+  document.getElementById('panel-staff').innerHTML=`
+    <div class="tbl-card">
+      <div class="chart-hdr">
+        <div><div class="chart-ttl">Staff Management</div><div class="chart-sub">${staff.filter(s=>s.facilityId===currentUser.facilityId).length} staff at ${getFacilityName(currentUser.facilityId)}</div></div>
+        <div style="display:flex;gap:6px;">
+          <button class="adm-btn" onclick="openModal('addStaffModal')">+ Add Staff</button>
+          <button class="adm-btn sec" onclick="exportStaff()">↓ Export</button>
+        </div>
+      </div>
+      <div class="search-bar">
+        <input class="search-input" placeholder="Search staff…" oninput="staffSearchQ=this.value;renderStaff()">
+      </div>
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Name</th><th>Role</th><th>Username</th><th>Phone</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${myStaff.length?myStaff.map(s=>{
+          const roleCls={doctor:'blue','admin-doctor':'blue','admin-chemist':'ok',receptionist:'purple',nurse:'med'}[s.role]||'blue';
+          return `<tr>
+            <td>${s.id}</td><td><strong>${s.name}</strong></td>
+            <td><span class="badge ${roleCls}">${s.role}</span></td>
+            <td style="color:var(--muted);">${s.username||'—'}</td>
+            <td>${s.phone||'—'}</td><td style="color:var(--muted);">${s.email||'—'}</td>
+            <td><span class="badge ${s.status==='active'?'ok':'low'}">${s.status}</span></td>
+            <td><div style="display:flex;gap:3px;">
+              <button class="mini-btn" onclick="toggleStaffStatus(${s.id})">${s.status==='active'?'Suspend':'Activate'}</button>
+              <button class="mini-btn red" onclick="removeStaff(${s.id})">Remove</button>
+            </div></td>
+          </tr>`;
+        }).join(''):`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;">No staff found.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+}
+function saveStaff(){
+  const name=document.getElementById('stName').value.trim();
+  const role=document.getElementById('stRole').value;
+  if(!name||!role){showToast('Name and role are required.','err');return;}
+  const s={id:nextId(staff),name,role,username:document.getElementById('stUsername').value,
+    phone:document.getElementById('stPhone').value,email:document.getElementById('stEmail').value,
+    facilityId:currentUser.facilityId,status:'active'};
+  staff.push(s);
+  addAudit('Staff Added',`${name} (${role}) added to ${getFacilityName(currentUser.facilityId)}`);
+  showToast(`${name} added to staff.`);
+  closeModal('addStaffModal');renderStaff();
+}
+function toggleStaffStatus(id){
+  const s=staff.find(x=>x.id===id);if(!s)return;
+  s.status=s.status==='active'?'suspended':'active';
+  addAudit('Staff Status',`${s.name} ${s.status}`);
+  showToast(`${s.name} ${s.status}.`);renderStaff();
+}
+async function removeStaff(id){
+  const s=staff.find(x=>x.id===id);
+  const ok=await showConfirm('Remove Staff',`Remove ${s.name} from the system?`);
+  if(!ok)return;
+  staff.splice(staff.indexOf(s),1);
+  addAudit('Staff Removed',`${s.name} removed`);
+  showToast(`${s.name} removed.`);renderStaff();
+}
+function exportStaff(){
+  const csv='Name,Role,Username,Phone,Email,Status\n'+
+    staff.filter(s=>s.facilityId===currentUser.facilityId).map(s=>`"${s.name}",${s.role},${s.username||''},${s.phone||''},${s.email||''},${s.status}`).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='staff.csv';a.click();showToast('Staff exported.');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  REPORTS PANEL
+// ═══════════════════════════════════════════════════════════════
+function renderReports(){
+  const totalStock=Object.keys(clinics[0].stock).reduce((s,m)=>s+clinics.reduce((ss,c)=>ss+(c.stock[m]||0),0),0);
+  const busyClinics=clinics.filter(c=>c.load>settings.highLoadThreshold).length;
+  // CMS Admin sees no patient/prescription data
+  const showMedical=userRole!=='admin-cms';
+  document.getElementById('panel-reports').innerHTML=`
+    <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);">
+      <div class="metric-card"><div class="metric-lbl">Total Medicine Units (Network)</div><div class="metric-val">${totalStock.toLocaleString()}</div></div>
+      <div class="metric-card"><div class="metric-lbl">Facilities</div><div class="metric-val">${clinics.length}</div></div>
+      <div class="metric-card"><div class="metric-lbl">Busy Clinics (>${settings.highLoadThreshold}%)</div><div class="metric-val">${busyClinics}</div><div class="metric-chg ${busyClinics>5?'dn':'up'}">${busyClinics>5?'⚠ High':'✓ Normal'}</div></div>
+      ${showMedical?`<div class="metric-card"><div class="metric-lbl">Prescriptions</div><div class="metric-val">${prescriptions.length}</div><div class="metric-sub">${prescriptions.filter(p=>p.used).length} dispensed</div></div>`:`<div class="metric-card"><div class="metric-lbl">CMS Stock Types</div><div class="metric-val">${Object.keys(cmsInventory).length}</div></div>`}
+    </div>
+    <div class="chart-row" style="grid-template-columns:1.5fr 1fr;">
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">Export Reports</div></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          <button class="adm-btn" onclick="exportReport('clinics')">𖠿 Clinic Report</button>
+          <button class="adm-btn sec" onclick="exportReport('inventory')">⫏⫐ Stock Report</button>
+          ${showMedical?`<button class="adm-btn sec" onclick="exportReport('prescriptions')">📋 Prescriptions</button>`:''}
+          ${userRole==='admin-cms'?`<button class="adm-btn pur" onclick="exportReport('cms')">🏭 CMS Report</button>`:''}
+          <button class="adm-btn sec" onclick="exportReport('audit')">🗎 Audit Log</button>
+        </div>
+        <p style="color:var(--muted);font-size:12px;line-height:1.7;">Generate comprehensive CSV reports for your role scope. ${userRole==='admin-cms'?'CMS reports show central stock only — no patient data.':userRole==='admin-doctor'?'Reports scoped to your facility only.':''}</p>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-ttl">Critical Alerts</div></div></div>
+        ${generateAlerts()}
+      </div>
+    </div>
+    <div class="tbl-card">
+      <div class="chart-hdr"><div><div class="chart-ttl">Audit Log</div></div></div>
+      <div class="audit-list">
+        ${auditLogData.length?auditLogData.slice(0,20).map(l=>{
+          const roleColors={'admin-doctor':'#667eea','admin-chemist':'#2dd4b6','admin-cms':'#9b5de5','admin-manager':'#f77f00','receptionist':'#22c55e','patient':'#ffbb00'};
+          const rc=roleColors[l.role]||'#aaa';
+          return `<div class="audit-item">
+            <div class="audit-time">${l.time}</div>
+            <div style="flex:1;"><div style="color:var(--text);">${l.action}</div><div style="color:var(--muted);font-size:9px;">${l.details}</div></div>
+            <div style="font-size:10px;color:var(--muted);">${l.user}</div>
+            <div class="audit-role-tag" style="background:${rc}22;color:${rc}">${l.role}</div>
+          </div>`;
+        }).join(''):'<div style="color:var(--muted);font-size:11px;padding:8px;">No events yet.</div>'}
+      </div>
+    </div>`;
+}
+function renderAuditLog(){
+  const el=document.getElementById('auditLogs');if(!el)return;
+  if(!auditLogData.length){el.innerHTML='<div style="color:var(--muted);font-size:11px;padding:8px;">No events.</div>';return;}
+  const roleColors={'admin-doctor':'#667eea','admin-chemist':'#2dd4b6','admin-cms':'#9b5de5','admin-manager':'#f77f00','receptionist':'#22c55e','patient':'#ffbb00'};
+  el.innerHTML=auditLogData.slice(0,12).map(l=>{
+    const rc=roleColors[l.role]||'#aaa';
+    return `<div class="audit-item">
+      <div class="audit-time">${l.time}</div>
+      <div style="flex:1;"><div style="color:var(--text);">${l.action}</div><div style="color:var(--muted);font-size:9px;">${l.details}</div></div>
+      <div class="audit-role-tag" style="background:${rc}22;color:${rc}">${l.role}</div>
+    </div>`;
+  }).join('');
+}
+function generateAlerts(){
+  const alerts=[];
+  ['Amoxicillin','Insulin','Metformin'].forEach(m=>{
+    const crit=clinics.filter(c=>(c.stock[m]||0)<settings.critStockThreshold);
+    if(crit.length)alerts.push({type:'crit',msg:`${crit.length} clinics critically low on ${m}`});
+  });
+  Object.entries(cmsInventory).forEach(([m,i])=>{
+    if(i.total-i.reserved<i.reorderLevel)alerts.push({type:'crit',msg:`CMS: ${m} below reorder level`});
+  });
+  clinics.filter(c=>c.load>settings.highLoadThreshold).slice(0,2).forEach(c=>{
+    alerts.push({type:'warn',msg:`${c.name.split(' — ')[0]} at ${Math.round(c.load)}% capacity`});
+  });
+  if(!alerts.length)return '<p style="color:var(--teal);font-size:12px;">✓ No critical alerts. Network is healthy.</p>';
+  return alerts.slice(0,6).map(a=>`<div class="alert-card ${a.type}">${a.type==='crit'?'⚠️':'🔔'} ${a.msg}</div>`).join('');
+}
+function exportReport(type){
+  let content='';
+  if(type==='clinics')content='Clinic,Location,Wait,Load%,Status\n'+clinics.map(c=>`"${c.name}",${c.location},${Math.round(c.waitTime)},${Math.round(c.load)},${c.load>80?'Busy':'Healthy'}`).join('\n');
+  else if(type==='inventory'){const meds=Object.keys(clinics[0].stock);content='Clinic,'+meds.join(',')+'\n'+clinics.map(c=>`"${c.name}",`+meds.map(m=>c.stock[m]||0).join(',')).join('\n');}
+  else if(type==='prescriptions')content='Code,Medicine,Patient,Dosage,Facility,Status,Date\n'+getScopedPrescriptions().map(p=>`${p.code},${p.medicine},"${p.patient}","${p.dosage||''}","${p.facilityName||''}",${p.revoked?'revoked':p.used?'used':'active'},${p.issuedAt}`).join('\n');
+  else if(type==='cms')content='Medicine,Total,Reserved,Available,Reorder Level,Supplier\n'+Object.entries(cmsInventory).map(([m,i])=>`${m},${i.total},${i.reserved},${i.total-i.reserved},${i.reorderLevel},"${i.supplier}"`).join('\n');
+  else if(type==='audit')content='Time,Action,Details,User,Role\n'+auditLogData.map(l=>`${l.time},"${l.action}","${l.details}","${l.user}",${l.role}`).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type:'text/csv'}));
+  a.download=`pulseflow_${type}_${Date.now()}.csv`;a.click();
+  addAudit('Report Exported',`${type} report downloaded`);showToast(`${type} report exported.`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  NOTIFICATIONS & SETTINGS
+// ═══════════════════════════════════════════════════════════════
+function openNotifications(){
+  const icons={crit:'🔴',warn:'⚠️',info:'ℹ️'};
+  const colors={crit:'rgba(240,67,122,.1)',warn:'rgba(255,187,0,.1)',info:'rgba(102,126,234,.1)'};
+  document.getElementById('notifList').innerHTML=notifications.map(n=>`
+    <div style="background:${colors[n.type]||'rgba(255,255,255,.05)'};padding:11px;border-radius:9px;font-size:12px;">
+      ${icons[n.type]||'•'} ${n.msg}<div style="font-size:10px;color:var(--muted);margin-top:3px;">${n.time}</div>
+    </div>`).join('');
+  document.getElementById('notifCount').style.display='none';
+  openModal('notifModal');
+}
+function openSettingsModal(){
+  if(!canDo('view-settings')){showToast('Settings access restricted.','warn');return;}
+  document.getElementById('refreshInterval').value=settings.refreshInterval;
+  document.getElementById('lowStockThreshold').value=settings.lowStockThreshold;
+  document.getElementById('critStockThreshold').value=settings.critStockThreshold;
+  document.getElementById('highLoadThreshold').value=settings.highLoadThreshold;
+  document.getElementById('reorderThreshold').value=settings.reorderThreshold;
+  openModal('settingsModal');
+}
+function saveSettings(){
+  settings.refreshInterval=parseInt(document.getElementById('refreshInterval').value)||8;
+  settings.lowStockThreshold=parseInt(document.getElementById('lowStockThreshold').value)||10;
+  settings.critStockThreshold=parseInt(document.getElementById('critStockThreshold').value)||5;
+  settings.highLoadThreshold=parseInt(document.getElementById('highLoadThreshold').value)||80;
+  settings.reorderThreshold=parseInt(document.getElementById('reorderThreshold').value)||20;
+  addAudit('Settings Updated',`Refresh:${settings.refreshInterval}s LowStock:<${settings.lowStockThreshold} HighLoad:>${settings.highLoadThreshold}%`);
+  showToast('Settings saved.');closeModal('settingsModal');restartAutoRefresh();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PATIENT PORTAL
+// ═══════════════════════════════════════════════════════════════
+function loadPatientData(){
+  const sel=document.getElementById('bookingClinicForm');
+  if(sel)sel.innerHTML='<option value="">Select Clinic</option>'+clinics.map(c=>`<option value="${c.id}">${c.name} – ~${Math.round(c.waitTime)} min wait</option>`).join('');
+  const d=document.getElementById('preferredDate');
+  if(d&&!d.value){d.value=new Date().toISOString().split('T')[0];}
+}
+function detectLocation(){
+  if(!navigator.geolocation){showToast('Geolocation not supported.','err');return;}
+  const btn=document.getElementById('locBtn');
+  btn.innerHTML='<span class="spinner"></span>Detecting…';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    btn.textContent='📡 Detect My Location';
+    const{latitude:lat,longitude:lng}=pos.coords;
+    document.getElementById('locationResult').innerHTML=`<span style="color:var(--teal);">✓ Location found (${lat.toFixed(4)}, ${lng.toFixed(4)})</span>`;
+    let nearby=clinics.filter(c=>Math.sqrt((c.lat-lat)**2+(c.lng-lng)**2)*111<=5);
+    if(!nearby.length)nearby=clinics.slice(0,5);
+    document.getElementById('nearbyClinics').innerHTML=`<h4 style="margin:12px 0 6px;font-size:13px;">Nearest Clinics:</h4>`+
+      nearby.map(c=>`<div class="clinic-card"><strong>${c.name}</strong><br>⏱ ~${Math.round(c.waitTime)} min &nbsp;|&nbsp; 📊 ${Math.round(c.load)}% load<br><button onclick="selectClinic(${c.id})" style="margin-top:7px;padding:7px 14px;">Book Here</button></div>`).join('');
+    addAudit('Location Access','Patient geolocation accessed');
+  },()=>{btn.textContent='📡 Detect My Location';showToast('Location permission denied.','err');});
+}
+function selectClinic(clinicId){
+  if(!currentUser){openLoginModal();return;}
+  const c=clinics.find(x=>x.id===clinicId);if(!c)return;
+  const sel=document.getElementById('bookingClinicForm');if(sel)sel.value=clinicId;
+  document.getElementById('fullName').focus();
+  showToast(`${c.name.split(' — ')[0]} selected.`);
+}
+function submitAppointment(){
+  if(!currentUser){openLoginModal();return;}
+  const name=document.getElementById('fullName').value.trim();
+  const phone=document.getElementById('phoneNumber').value.trim();
+  const date=document.getElementById('preferredDate').value;
+  const time=document.getElementById('preferredTime').value;
+  const clinicId=document.getElementById('bookingClinicForm').value;
+  if(!name)return showToast('Full name required.','err');
+  if(!phone)return showToast('Phone required.','err');
+  if(!date)return showToast('Please select a date.','err');
+  if(!time)return showToast('Please select a time.','err');
+  if(!clinicId)return showToast('Please select a clinic.','err');
+  const clinic=clinics.find(c=>c.id==clinicId);if(!clinic)return;
+  const qNum='Q-'+Math.floor(Math.random()*500+100);
+  appointments.push({id:nextId(appointments),patient:name,doctor:'TBC',date,time,
+    notes:document.getElementById('symptoms').value,status:'pending',facilityId:clinic.facilityId||clinic.id});
+  addAudit('Appointment Booked',`${name} → ${clinic.name.split(' — ')[0]} on ${date} ${time}`);
+  document.getElementById('bookingResult').innerHTML=`
+    <div style="background:rgba(45,212,182,.1);padding:14px;border-radius:12px;margin-top:8px;border:1px solid rgba(45,212,182,.25);">
+      <strong style="color:var(--teal);">✓ Appointment Confirmed!</strong><br>
+      <span style="font-size:12px;color:var(--muted);">
+        <strong>${name}</strong> → ${clinic.name.split(' — ')[0]}<br>
+        𝄜 ${date} at ${time}<br>
+        🎟 Queue: <strong>${qNum}</strong> &nbsp;·&nbsp; ⏱ ~${Math.round(clinic.waitTime)} min wait
+      </span>
+    </div>`;
+  ['fullName','phoneNumber','preferredTime','symptoms'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  showToast('✓ Appointment confirmed!');
+}
+function checkMedicineWithPrescription(){
+  if(!currentUser){openLoginModal();return;}
+  const code=document.getElementById('prescriptionCode').value.trim().toUpperCase();
+  const medicine=document.getElementById('prescriptionMedicine').value.trim();
+  if(!code)return showToast('Enter prescription code.','err');
+  if(!medicine)return showToast('Enter medicine name.','err');
+  const p=prescriptions.find(pr=>pr.code===code&&!pr.used&&!pr.revoked);
+  const medNorm=medicine.charAt(0).toUpperCase()+medicine.slice(1).toLowerCase();
+  if(!p){document.getElementById('prescriptionResult').innerHTML=`<div style="background:rgba(240,67,122,.1);padding:12px;border-radius:10px;"><strong style="color:var(--pink);">✗ Invalid or expired prescription.</strong><br><span style="font-size:11px;color:var(--muted);">${code} not found, used, or revoked.</span></div>`;return;}
+  if(p.medicine.toLowerCase()!==medicine.toLowerCase()){document.getElementById('prescriptionResult').innerHTML=`<div style="background:rgba(240,67,122,.1);padding:12px;border-radius:10px;"><strong style="color:var(--pink);">✗ Medicine mismatch.</strong><br><span style="font-size:11px;color:var(--muted);">${code} is for ${p.medicine}, not ${medNorm}.</span></div>`;return;}
+  p.used=true;
+  addAudit('Prescription Used',`${code} verified for ${medNorm}`);
+  const avail=clinics.filter(c=>(c.stock[medNorm]||0)>0);
+  let html=`<div style="background:rgba(45,212,182,.1);padding:12px;border-radius:10px;margin-bottom:8px;border:1px solid rgba(45,212,182,.2);">
+    <strong style="color:var(--teal);">✓ Verified: ${code}</strong><br>
+    <span style="font-size:11px;color:var(--muted);">${medNorm} · ${p.dosage||'As directed'} · ${p.duration||'As prescribed'}</span>
+  </div>`;
+  if(avail.length)html+=`<div><strong style="font-size:12px;">Available at:</strong>${avail.slice(0,3).map(c=>`<div class="clinic-card"><strong>${c.name.split(' — ')[0]}</strong><br><span class="badge-avail">✓ ${c.stock[medNorm]} units</span><br><button onclick="selectClinic(${c.id})" style="margin-top:6px;padding:6px 12px;">Book</button></div>`).join('')}</div>`;
+  document.getElementById('prescriptionResult').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  AI CHAT
+// ═══════════════════════════════════════════════════════════════
+const chatResponses=['Based on your symptoms, I recommend visiting your nearest clinic. Shall I locate one for you?','That sounds like a respiratory issue. Please see a doctor soon — I can help book an appointment.','Stay hydrated and monitor your temperature. If symptoms persist 48h, seek medical attention.','Please ask your doctor for a prescription code, then use our Medicine Check tool.','Say "find clinics" and I\'ll help locate nearby facilities with available slots.'];
+let chatIdx=0;
+function toggleChat(){const w=document.getElementById('chatWindow');w.style.display=w.style.display==='flex'?'none':'flex';}
+function sendChatMessage(){
+  const inp=document.getElementById('chatInput');const msg=inp.value.trim();if(!msg)return;
+  const chat=document.getElementById('chatMessages');
+  chat.innerHTML+=`<div class="msg user-msg">${msg}</div>`;inp.value='';chat.scrollTop=chat.scrollHeight;
+  setTimeout(()=>{chat.innerHTML+=`<div class="msg bot-msg">${chatResponses[chatIdx%chatResponses.length]}</div>`;chatIdx++;chat.scrollTop=chat.scrollHeight;},700);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CAROUSEL
+// ═══════════════════════════════════════════════════════════════
+const images=['https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=1600&q=80','https://images.unsplash.com/photo-1584515933487-779824d29309?w=1600&q=80','https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1600&q=80','https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=1600&q=80'];
+let currentSlide=0;
+function initCarousel(){
+  const c=document.getElementById('carouselBg');if(!c)return;
+  c.innerHTML='';
+  images.forEach((img,i)=>{const d=document.createElement('div');d.className='carousel-slide'+(i===0?' active':'');d.style.backgroundImage=`url(${img})`;c.appendChild(d);});
+  setInterval(()=>{const s=document.querySelectorAll('.carousel-slide');s[currentSlide].classList.remove('active');currentSlide=(currentSlide+1)%s.length;s[currentSlide].classList.add('active');},5000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  AUTO-REFRESH
+// ═══════════════════════════════════════════════════════════════
+let refreshTimer;
+function restartAutoRefresh(){
+  clearInterval(refreshTimer);
+  refreshTimer=setInterval(()=>{
+    clinics.forEach(c=>{
+      c.waitTime=Math.max(8,Math.min(85,c.waitTime+(Math.random()-.5)*5));
+      c.load=Math.min(98,Math.max(20,c.load+(Math.random()-.5)*6));
+      Object.keys(c.stock).forEach(m=>{let v=c.stock[m]+(Math.floor(Math.random()*4)-1);if(v<0)v=Math.floor(Math.random()*12)+3;if(v>200)v=180;c.stock[m]=v;});
+    });
+    const adminActive=document.getElementById('admin-page').classList.contains('active-page')&&currentUser&&userRole!=='patient';
+    if(adminActive){
+      if(currentPanel==='dashboard')renderDashboard();
+      else if(currentPanel==='clinics')renderClinics();
+      else if(currentPanel==='inventory')renderInventory();
+    }
+    if(document.getElementById('patient-page').classList.contains('active-page'))loadPatientData();
+  },settings.refreshInterval*1000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MISC
+// ═══════════════════════════════════════════════════════════════
+function openWhatsApp(){window.open('https://wa.me/26776481752?text=Hello%20I%20need%20assistance','_blank');}
+document.querySelectorAll('.modal').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
+
+// Init
+document.getElementById('heroClinicCount').textContent=clinics.length;
+document.getElementById('footerClinicCount').textContent=clinics.length;
+initCarousel();restartAutoRefresh();
+
+// Expose all functions globally
+const fns={showPage,openLoginModal,doLogin,doLogout,toggleChat,sendChatMessage,detectLocation,selectClinic,submitAppointment,checkMedicineWithPrescription,switchPanel,setLocFilter,toggleSidebar,closeModal,closeConfirm,openNotifications,openSettingsModal,saveSettings,renderPatients,savePatient,openEditPatient,updatePatient,confirmDeletePatient,exportPatients,issueForPatient,renderPrescriptions,issuePrescriptionModal,revokePrescription,dispensePrescription,exportPrescriptions,renderInventory,openRestockModal,openRestockForClinic,doRestock,populateRestockClinics,renderCmsInventory,renderCmsFacilityTable,exportFacilityStock,cmsRestockMed,exportCmsInventory,populateDistributeModal,doDistribute,renderDistribution,renderClinics,refreshClinic,refreshAllClinics,viewClinicDetail,renderSchedule,filterAppts,confirmAppt,cancelAppt,saveAppointment,renderStaff,saveStaff,toggleStaffStatus,removeStaff,exportStaff,renderReports,exportReport};
+Object.assign(window,fns);
+</script>
+</body>
+</html>
